@@ -69,7 +69,7 @@ export function DashboardPage() {
       <PageHeader
         eyebrow={greeting.greeting}
         title={DASHBOARD_COPY.heading}
-        description="Mały przegląd domu. Wersja spokojniejsza niż welcome screen."
+        description="Mały przegląd domu super miśków. "
       />
 
       <div className="dashboard-grid">

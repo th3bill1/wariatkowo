@@ -65,6 +65,8 @@ export function Doodle({
     .filter(Boolean)
     .join(' ');
 
+  const isDogIcon = iconName === 'paw';
+
   let content: JSX.Element | null = null;
 
   if (placement.visual.kind === 'image') {
@@ -74,6 +76,31 @@ export function Doodle({
   }
 
   if (isInteractive) {
+    if (isDogIcon) {
+      return (
+        <div
+          aria-label={placement.title}
+          className={className}
+          onClick={() => {
+            setIsReacting(true);
+            onDogClick();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+              e.preventDefault();
+              setIsReacting(true);
+              onDogClick();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          style={style}
+        >
+          {content}
+        </div>
+      );
+    }
+
     return (
       <button
         aria-label={placement.title}

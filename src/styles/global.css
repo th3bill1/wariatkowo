@@ -271,7 +271,7 @@ a:focus-visible {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.03em;
-  font-family: 'Fredoka', 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Fredoka', 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: clamp(2.8rem, 10vw, 7rem);
   line-height: 0.92;
   font-weight: 700;
@@ -322,7 +322,7 @@ a:focus-visible {
 }
 
 .wariatkowo-logo--malfunctioning {
-  font-family: 'Fredoka', 'Georgia', serif;
+  font-family: 'Nunito', 'Georgia', serif;
   letter-spacing: 0.14em;
   filter: hue-rotate(48deg) saturate(1.2) contrast(1.06);
   animation: logo-malfunction 0.45s steps(2, end) infinite;
@@ -355,7 +355,7 @@ a:focus-visible {
 
 .welcome-greeting__message {
   margin: 0;
-  font-family: 'Fredoka', 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Fredoka', sans-serif;
   font-size: clamp(1.45rem, 4vw, 2.1rem);
   line-height: 1.15;
   font-weight: 600;
@@ -394,7 +394,7 @@ a:focus-visible {
 }
 
 .welcome-cta__text {
-  font-family: 'Fredoka', 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Fredoka', sans-serif;
   font-size: 1.06rem;
   font-weight: 600;
 }
@@ -548,7 +548,7 @@ a:focus-visible {
 
 .dashboard-page__greeting {
   margin: 0;
-  font-family: 'Fredoka', 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Fredoka', sans-serif;
   font-size: clamp(1.4rem, 3vw, 1.9rem);
   font-weight: 600;
 }
@@ -570,7 +570,7 @@ a:focus-visible {
 
 .dashboard-card__title {
   margin: 0 0 0.45rem;
-  font-family: 'Fredoka', 'Nunito', sans-serif;
+  font-family: 'Nunito', 'Fredoka', sans-serif;
   font-size: 1.18rem;
 }
 

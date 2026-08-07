@@ -279,7 +279,7 @@ export function ShoppingPage() {
       <PageHeader
         eyebrow="Lista pod ręką"
         title={SHOPPING_COPY.heading}
-        description="Szybkie dodawanie i wygodne odhaczanie, najlepiej z telefonu w sklepie."
+        description="Szybkie dodawanie i wygodne odhaczanie."
         actions={
           <button className="primary-button" onClick={() => setShowComposer((current) => !current)} type="button">
             Co kupujemy?

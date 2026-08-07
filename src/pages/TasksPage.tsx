@@ -268,7 +268,7 @@ export function TasksPage() {
       <PageHeader
         eyebrow="Domowy panel"
         title={TASKS_COPY.heading}
-        description="Szybka lista spraw do ogarnięcia, bez zbędnego patosu."
+        description="Szybka lista spraw do ogarnięcia."
         actions={
           <button className="primary-button" onClick={() => setComposerOpen((current) => !current)} type="button">
             {TASKS_COPY.addButton}
