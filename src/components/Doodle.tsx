@@ -86,9 +86,6 @@ export function Doodle({
         type="button"
       >
         {content}
-        <span aria-hidden="true" className={['doodle__bubble', isReacting ? 'doodle__bubble--visible' : ''].join(' ')}>
-          {RANDOM_EVENT_COPY.dogBubble}
-        </span>
       </button>
     );
   }

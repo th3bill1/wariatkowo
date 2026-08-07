@@ -110,16 +110,16 @@ export function WelcomePage() {
 
         <WelcomeGreeting greeting={greetingState.greeting} subtitle={subtitle} />
 
-        <p className="welcome-page__microcopy">Domowy pulpit dla dwojga, który lubi się uśmiechać.</p>
+        <p className="welcome-page__microcopy">Domowy panel miśkowy.</p>
 
         <WelcomeCTA isExiting={isExiting} onClick={beginExit} />
 
         <WariatkowoStatus status={status} />
 
         <div className="welcome-page__footnote" aria-hidden="true">
-          <span>Mały dom.</span>
-          <span>Dużo serca.</span>
-          <span>Trochę bałaganu.</span>
+          <span>Super mieszkanie.</span>
+          <span>Pyszne jedzenie.</span>
+          <span>Duuużo miłości.</span>
         </div>
       </section>
     </main>

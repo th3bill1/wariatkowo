@@ -3,5 +3,5 @@ export const WELCOME_COPY = {
   cta: 'Wchodzę do Wariatkowa',
   ctaShort: 'Wchodzę',
   dashboardTitle: 'Wariatkowo',
-  dashboardIntro: 'Domowy pulpit na spokojniejsze dni i bardziej podejrzane pomysły.',
+  dashboardIntro: 'Domowy pulpit miśkowy',
 } as const;

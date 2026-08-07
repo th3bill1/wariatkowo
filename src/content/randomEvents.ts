@@ -22,14 +22,13 @@ export const RANDOM_EVENT_DEFINITIONS: readonly RandomEventDefinition[] = [
   },
   {
     id: 'suspiciousStatus',
-    label: 'Podejrzany status',
+    label: 'Podejrzane',
     chance: 0.05,
   },
 ];
 
 export const RANDOM_EVENT_COPY = {
   suspiciousStatus: 'Brak poważnych awarii. Podejrzane.',
-  dogBubble: 'HAU!',
   totalChaos: 'Tryb Totalnego Wariata',
   konami: 'Niespodziewany poziom chaosu odblokowany.',
 } as const;

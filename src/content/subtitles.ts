@@ -1,10 +1,9 @@
 export const WARIATKOWO_SUBTITLES = [
-  'Centrum zarządzania chaosem',
-  'Jakoś to wszystko działa',
-  'Strefa względnie kontrolowana',
-  'Witamy ponownie. Dom nadal stoi.',
-  'System operacyjny naszego domu',
-  'Tu miało być spokojnie',
-  'Miejsce, gdzie plan i improwizacja żyją razem',
-  'Mały dom z wielkimi pomysłami',
+  'Miśki się kochają, miśki się kochają',
+  'Do you love me? Yes I do; Yes I do.',
+  'Najwięksi fani Grey\'s Anatomy i Marvela',
+  'Robimy najpyszniejsze jedzenie w galaktyce',
+  'Hej, hej, hej',
+  'Nigdy nie robimy szczura',
+  'Olbrzymie bicki i sześciopaki'
 ] as const;

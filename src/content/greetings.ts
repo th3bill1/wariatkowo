@@ -10,13 +10,13 @@ export const FIRST_VISIT_GREETINGS = [
 
 export const RETURNING_GREETINGS = [
   'Witamy ponownie 😎',
-  'Wracasz idealnie na czas. Prawie.',
+  'No w końcu tu jesteś...',
 ] as const;
 
 export const TIME_BASED_GREETINGS = {
   morning: 'Dzień dobry ❤️',
   evening: 'Dobry wieczór ❤️',
-  night: 'Późno już, ale Wariatkowo nadal świeci.',
+  night: 'Idź spać.',
 } as const;
 
 export function pickGreeting(context: GreetingContext): string {
