@@ -1,0 +1,15 @@
+export const TASKS_COPY = {
+  heading: 'Zadania',
+  addButton: '+ Dodaj zadanie',
+  emptyTitle: 'Nie ma nic do zrobienia.',
+  emptyDescription: 'To się nie zdarza często.',
+  editButton: 'Edytuj',
+  deleteButton: 'Usuń',
+  saveButton: 'Zapisz',
+  cancelButton: 'Anuluj',
+  dueDateLabel: 'Termin',
+  notesLabel: 'Notatka',
+  titleLabel: 'Nazwa *',
+  completedSection: 'Zrobione',
+  todoSection: 'Do zrobienia',
+} as const;

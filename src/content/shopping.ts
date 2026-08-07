@@ -1,0 +1,16 @@
+export const SHOPPING_COPY = {
+  heading: 'Zakupy',
+  quickAddPlaceholder: 'Co kupujemy?',
+  emptyTitle: 'Lista zakupów jest pusta.',
+  emptyDescription: 'Lodówka twierdzi, że to niemożliwe.',
+  clearCompleted: 'Usuń kupione',
+  editButton: 'Edytuj',
+  deleteButton: 'Usuń',
+  saveButton: 'Zapisz',
+  cancelButton: 'Anuluj',
+  nameLabel: 'Nazwa',
+  quantityLabel: 'Ilość',
+  categoryLabel: 'Kategoria',
+  boughtSection: 'Kupione',
+  todoSection: 'Do kupienia',
+} as const;
