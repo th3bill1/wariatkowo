@@ -1,0 +1,45 @@
+{
+  "routes": [
+    {
+      "routePath": "/api/shopping/completed",
+      "mountPath": "/api/shopping",
+      "method": "",
+      "module": [
+        "api/shopping/completed.ts:onRequest"
+      ]
+    },
+    {
+      "routePath": "/api/shopping/:id",
+      "mountPath": "/api/shopping",
+      "method": "",
+      "module": [
+        "api/shopping/[id].ts:onRequest"
+      ]
+    },
+    {
+      "routePath": "/api/tasks/:id",
+      "mountPath": "/api/tasks",
+      "method": "",
+      "module": [
+        "api/tasks/[id].ts:onRequest"
+      ]
+    },
+    {
+      "routePath": "/api/shopping",
+      "mountPath": "/api/shopping",
+      "method": "",
+      "module": [
+        "api/shopping/index.ts:onRequest"
+      ]
+    },
+    {
+      "routePath": "/api/tasks",
+      "mountPath": "/api/tasks",
+      "method": "",
+      "module": [
+        "api/tasks/index.ts:onRequest"
+      ]
+    }
+  ],
+  "baseURL": "/"
+}

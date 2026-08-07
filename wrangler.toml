@@ -2,9 +2,6 @@ name = "wariatkowo"
 compatibility_date = "2026-08-07"
 pages_build_output_dir = "dist"
 
-[assets]
-directory = "./dist"
-
 [[d1_databases]]
 binding = "DB"
 database_name = "wariatkowo-db"
