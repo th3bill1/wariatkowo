@@ -7,4 +7,5 @@ export const APP_NAV_ITEMS = [
   { label: 'Dziś', path: '/dashboard', icon: 'home' },
   { label: 'Zadania', path: '/zadania', icon: 'tasks' },
   { label: 'Zakupy', path: '/zakupy', icon: 'shopping' },
+  { label: 'Quiz', path: '/powrot-do-wariatkowa', icon: 'quiz'}
 ] as const;

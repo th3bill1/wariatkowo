@@ -29,6 +29,7 @@ The frontend never talks to D1 directly. All task and shopping data goes through
 - `/dashboard` - Wariatkowo dziś
 - `/zadania` - task list
 - `/zakupy` - shopping list
+- `/powrot-do-wariatkowa` - quiz Powrót do Wariatkowa
 
 ## Project structure
 
@@ -58,6 +59,8 @@ Editable copy lives in a few small files so it stays easy to change later:
 - Tasks copy: `src/content/tasks.ts`
 - Shopping copy and categories: `src/content/shopping.ts`, `src/content/shoppingCategories.ts`
 - Loading copy: `src/content/loading.ts`
+- Quiz questions: `src/content/quiz/questions.ts`
+- Quiz result messages: `src/content/quiz/results.ts`
 
 ## Doodles and welcome visuals
 
@@ -91,7 +94,16 @@ Add the D1 binding in the Cloudflare Pages project settings under Functions / D1
 
 ## SPA routing
 
-`public/_redirects` routes client-side paths back to `index.html`, so direct visits like `/dashboard`, `/zadania`, and `/zakupy` work on Cloudflare Pages.
+`public/_redirects` routes client-side paths back to `index.html`, so direct visits like `/dashboard`, `/zadania`, `/zakupy`, and `/powrot-do-wariatkowa` work on Cloudflare Pages.
+
+## Powrót do Wariatkowa quiz
+
+- Quiz questions live in `src/content/quiz/questions.ts`
+- Quiz images live in `public/quiz/`
+- Add a question by copying an image into `public/quiz/`, adding a new object to `quizQuestions`, and setting `correctAnswer` to the zero-based index of the right answer
+- `correctAnswer` uses `0` to `3`
+- Scoring is frontend-only: self-answer mode can award 2 points, multiple-choice mode can award at most 1 point
+- Result copy is editable in `src/content/quiz/results.ts`
 
 ## Notes
 
