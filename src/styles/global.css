@@ -3272,8 +3272,45 @@ a:focus-visible {
 @media (max-width: 900px) {
   .dashboard-grid > .app-card { grid-column: 1 / -1; min-width: 0; width: 100%; }
   .dashboard-page__surface, .calendar-page, .content-stack { min-width: 0; width: 100%; max-width: 100%; }
-  .app-shell__bottom-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.25rem; }
-  .app-shell__bottom-link { min-width: 0; padding: 0.7rem 0.25rem; font-size: 0.74rem; }
+  .app-shell__bottom-nav {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.2rem;
+    padding-inline: 0.4rem;
+  }
+  .app-shell__bottom-link {
+    min-width: 0;
+    padding: 0.48rem 0.08rem;
+    flex-direction: column;
+    gap: 0.18rem;
+    border-radius: 0.85rem;
+    font-size: 0.66rem;
+    line-height: 1.05;
+  }
+  .app-shell__bottom-link:hover {
+    transform: none;
+  }
+  .app-shell__bottom-link .app-shell__nav-icon {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+  .app-shell__bottom-link span {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-shell__bottom-link {
+    font-size: 0.6rem;
+  }
+  .app-shell__bottom-link .app-shell__nav-icon {
+    width: 0.86rem;
+    height: 0.86rem;
+  }
 }
 
 @media (max-width: 480px) {
