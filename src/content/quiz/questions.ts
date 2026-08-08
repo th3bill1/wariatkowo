@@ -19,6 +19,38 @@ export type QuizQuestion = {
 
 export const quizQuestions: QuizQuestion[] = [
   {
+    id: 'sniadanie',
+    question: 'Co tradycyjnie jemy w każdą niedzielę na śniadanie?',
+    image: '/quiz/balkon.jpg',
+    imageAlt: 'sniadanie',
+    answers: ['Szakszuke','Omleta','Naleśniki','Bajgle'],
+    correctAnswer: 0
+  },
+  {
+    id: 'osiedle',
+    question: 'Jak nazywa się nasze osiedle?',
+    image: '/quiz/osiedle.jpg',
+    imageAlt: 'Widok naszego osiedla',
+    answers: ['In Place', 'Active City', 'Active Home', 'Smart City'],
+    correctAnswer: 1,
+  },
+  {
+    id: 'snack',
+    question: 'Jaki jest ulubiony snack Miśków?',
+    image: '/quiz/snack.jpg',
+    imageAlt: 'Snack',
+    answers: ['Strongi','Orzeszki','Arbuz','Lody'],
+    correctAnswer: 0
+  },
+  {
+    id: 'klima',
+    question: 'Jak nazywamy klimatyzację w Wariatkowie (dopóki Miśka nie wymyśli lepszej nazwy)?',
+    image: '/quiz/klima.jpg',
+    imageAlt: 'Klima',
+    answers: ['Chłodzownica','Wietrzyciel','Dmuchator','Szumownica'],
+    correctAnswer: 3
+  },
+  {
     id: 'przeprowadzka',
     question: 'Kiedy przeprowadziliśmy się do Wariatkowa?',
     image: '/quiz/przeprowadzka2.jpeg',
@@ -27,19 +59,19 @@ export const quizQuestions: QuizQuestion[] = [
     correctAnswer: 2,
   },
   {
+    id: 'samotnosc',
+    question: 'Ile razy Misiek został osamotniony w Wariatkowie?',
+    image: '/quiz/hot.jpg',
+    imageAlt: 'Hot',
+    answers: ['2','3','4','5'],
+    correctAnswer: 2
+  },
+  {
     id: 'jedzenie',
     question: 'Jakie było pierwsze jedzenie, które zjedliśmy w Wariatkowie?',
     image: '/quiz/jedzenie.jpg',
     imageAlt: 'Jedzenie',
     answers: ['Azjata', 'Pizza', 'Szakszuka', 'Arrabbiata'],
-    correctAnswer: 1,
-  },
-  {
-    id: 'osiedle',
-    question: 'Jak nazywa się nasze osiedle?',
-    image: '/quiz/osiedle.jpg',
-    imageAlt: 'Widok naszego osiedla',
-    answers: ['In Place', 'Active City', 'Active Home', 'Smart City'],
     correctAnswer: 1,
   },
   {
@@ -62,13 +94,14 @@ export const quizQuestions: QuizQuestion[] = [
     correctAnswer: 3
   },
   {
-    id: 'samotnosc',
-    question: 'Ile razy Misiek został osamotniony w Wariatkowie?',
-    image: '/quiz/hot.jpg',
-    imageAlt: 'Hot',
-    answers: ['2','3','4','5'],
-    correctAnswer: 2
-  }
+    id: 'noc',
+    question: 'Dlaczego sąsiedzi narzekają, że w nocy jest u nas głośno?',
+    image: '/quiz/jeki.png',
+    imageAlt: 'Jęki',
+    answers: ['bo Miśka głośno chrapie', 'bo Misiek krzyczy na komputer', 'Wcale nie jest głośno', 'bo słychać głośne jęki'],
+    correctAnswer: 3,
+  },
+
 ];
 
 export type QuizConfigIssue = {

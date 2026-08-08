@@ -10,7 +10,7 @@ export const quizResultMessages: QuizResultMessage[] = [
   },
   {
     minPercent: 70,
-    message: 'Możesz wrócić do domu. ❤️',
+    message: 'Coś tam pamiętasz, ale musisz zostać na dłużej.',
   },
   {
     minPercent: 40,
