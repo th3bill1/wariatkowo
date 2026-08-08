@@ -2,7 +2,7 @@ import type { HouseholdMember } from '../../shared/models';
 import { error, type Env } from './http';
 
 export const SESSION_COOKIE = 'wariatkowo_session';
-export const PIN_ITERATIONS = 210_000;
+export const PIN_ITERATIONS = 100_000;
 const encoder = new TextEncoder();
 
 type MemberAuthRow = HouseholdMember & {
@@ -41,7 +41,7 @@ export function constantTimeEqual(first: string, second: string): boolean {
   return mismatch === 0;
 }
 export async function verifyMemberPin(member: MemberAuthRow, pin: string): Promise<boolean> {
-  if (!member.pin_hash || !member.pin_salt || !member.pin_iterations) return false;
+  if (!member.pin_hash || !member.pin_salt || !member.pin_iterations || member.pin_iterations > PIN_ITERATIONS) return false;
   return constantTimeEqual(await derivePinHash(pin, member.pin_salt, member.pin_iterations), member.pin_hash);
 }
 export function readCookie(request: Request, name: string): string | null {
