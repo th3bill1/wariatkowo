@@ -4,8 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/generate-polaroid-manifest.mjs",
     "dev": "vite",
     "dev:full": "wrangler pages dev dist",
+    "prebuild": "node scripts/generate-polaroid-manifest.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "deploy": "wrangler pages deploy dist --project-name=wariatkowo",

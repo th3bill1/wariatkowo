@@ -39,6 +39,12 @@ Calendar data is stored in D1 by `0004_calendar.sql`. Authenticated Pages Functi
 
 The dashboard loads tasks, shopping, seven-day task statistics, and the next fourteen days of calendar events in parallel. Task, shopping, and calendar hooks revalidate on window focus, visibility restoration, and reconnect so changes made on another device become visible without WebSockets.
 
+### Personal Polaroid photos
+
+Place `.jpg`, `.jpeg`, `.png`, or `.webp` images in `public/polaroids/`. Running `npm run dev` or `npm run build` regenerates `src/content/generatedPolaroids.ts`, so no manual React import is needed. WebP is recommended for smaller deployments, although JPEG and PNG remain supported.
+
+Optional alt text or crop correction can be added by filename in `PHOTO_OVERRIDES` inside `src/content/polaroids.ts`, for example `position: "center 30%"`. The reusable frame and size system live in `src/components/PolaroidPhoto.tsx`.
+
 - `/powrot-do-wariatkowa` - quiz Powrót do Wariatkowa
 
 ## Project structure

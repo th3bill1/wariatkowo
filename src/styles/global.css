@@ -1832,6 +1832,14 @@ a:focus-visible {
   }
 }
 
+@media (max-width: 800px) {
+  .dashboard-hero { align-items: center; flex-direction: column; gap: 0.8rem; min-height: 0; }
+  .dashboard-polaroids { align-self: center; flex: none; width: 18rem; height: 7.8rem; margin: 0 0 0.6rem; }
+  .dashboard-polaroid { --polaroid-width: 6rem; }
+  .dashboard-polaroid--2 { left: 5.4rem; }
+  .dashboard-polaroid--3 { left: 10.8rem; }
+}
+
 @media (max-width: 720px) {
   .floating-doodles {
     overflow: hidden;
@@ -3069,4 +3077,217 @@ a:focus-visible {
 
 .month-event__title {
   font-size: 0.72rem;
+}
+
+.polaroid-photo {
+  --polaroid-width: 10.8rem;
+  width: var(--polaroid-width);
+  margin: 0;
+  padding: 0.55rem 0.55rem 1.45rem;
+  border: 1px solid rgba(91, 73, 60, 0.1);
+  border-radius: 0.18rem;
+  background: #fffdf6;
+  box-shadow:
+    0 0.9rem 2rem rgba(78, 53, 37, 0.18),
+    0 0.15rem 0.3rem rgba(78, 53, 37, 0.12);
+  transform: rotate(var(--polaroid-rotation));
+  transform-origin: center;
+}
+.polaroid-photo--small {
+  --polaroid-width: 8.2rem;
+  padding: 0.42rem 0.42rem 1.1rem;
+}
+.polaroid-photo--large {
+  --polaroid-width: 13rem;
+  padding: 0.65rem 0.65rem 1.7rem;
+}
+.polaroid-photo__image-area {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #eee9df;
+}
+.polaroid-photo__image-area img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.polaroid-photo--loading .polaroid-photo__image-area {
+  animation: polaroid-loading-pulse 1.8s ease-in-out infinite;
+}
+.polaroid-photo--loading .polaroid-photo__image-area img {
+  opacity: 0;
+}
+.polaroid-photo--failed .polaroid-photo__image-area {
+  background: linear-gradient(135deg, #eee9df, #e2dcd0);
+}
+.welcome-polaroids {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.welcome-polaroid {
+  position: absolute;
+  pointer-events: auto;
+  transition:
+    transform 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out);
+  animation: polaroid-drift 14s ease-in-out infinite alternate;
+}
+.welcome-polaroid:hover {
+  z-index: 8 !important;
+  transform: translate3d(
+      calc(var(--parallax-x, 0) * var(--photo-depth) * 10px),
+      calc(var(--parallax-y, 0) * var(--photo-depth) * 8px - 5px),
+      0
+    )
+    rotate(0deg) scale(1.03);
+  box-shadow: 0 1.15rem 2.5rem rgba(78, 53, 37, 0.24);
+}
+.welcome-polaroid--1 {
+  top: 3%;
+  left: 17%;
+  z-index: 3;
+}
+.welcome-polaroid--2 {
+  top: 4%;
+  right: 17%;
+  z-index: 2;
+  animation-delay: -4s;
+}
+.welcome-polaroid--3 {
+  top: 38%;
+  left: 12%;
+  z-index: 1;
+  animation-delay: -7s;
+}
+.welcome-polaroid--4 {
+  top: 40%;
+  right: 12%;
+  z-index: 3;
+  animation-delay: -2s;
+}
+.welcome-polaroid--5 {
+  bottom: 3%;
+  left: 23%;
+  z-index: 2;
+  animation-delay: -9s;
+}
+.welcome-polaroid--6 {
+  right: 23%;
+  bottom: 2%;
+  z-index: 1;
+  animation-delay: -5s;
+}
+.welcome-polaroids--chaos .welcome-polaroid {
+  filter: saturate(1.08);
+}
+.dashboard-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  min-height: 9.5rem;
+}
+.dashboard-hero .page-header {
+  flex: 1;
+}
+.dashboard-polaroids {
+  position: relative;
+  flex: 0 0 22rem;
+  height: 10rem;
+  margin-right: 0.5rem;
+}
+.dashboard-polaroid { position: absolute; top: 0; margin: 0; }
+.dashboard-polaroid--1 { left: 0; z-index: 1; }
+.dashboard-polaroid--2 { left: 6.2rem; top: 0.25rem; z-index: 3; }
+.dashboard-polaroid--3 { left: 12.4rem; z-index: 2; }
+@keyframes polaroid-drift {
+  from {
+    translate: 0 0;
+  }
+  to {
+    translate: 0 -4px;
+  }
+}
+@keyframes polaroid-loading-pulse {
+  0%, 100% { background-color: #eee9df; }
+  50% { background-color: #e3dacd; }
+}
+@media (max-width: 1100px) {
+  .welcome-polaroid--5,
+  .welcome-polaroid--6 {
+    display: none;
+  }
+  .welcome-polaroid {
+    --polaroid-width: 9.2rem;
+  }
+}
+@media (max-width: 600px) {
+  .welcome-polaroid--3,
+  .welcome-polaroid--4,
+  .welcome-polaroid--5,
+  .welcome-polaroid--6 {
+    display: none;
+  }
+  .welcome-polaroid {
+    --polaroid-width: 6.7rem;
+    padding: 0.35rem 0.35rem 0.9rem;
+    opacity: 0.9;
+  }
+  .welcome-polaroid--1 {
+    top: 0.6rem;
+    left: 8%;
+  }
+  .welcome-polaroid--2 {
+    top: 0.9rem;
+    right: 8%;
+  }
+  .dashboard-hero {
+    align-items: center;
+    flex-direction: column;
+    gap: 0.8rem;
+    min-height: 0;
+  }
+  .dashboard-polaroids { align-self: center; flex: none; width: 18rem; height: 7.8rem; margin: 0 0 0.6rem; }
+  .dashboard-polaroid { --polaroid-width: 6rem; }
+  .dashboard-polaroid--2 { left: 5.4rem; }
+  .dashboard-polaroid--3 { left: 10.8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .polaroid-photo--loading .polaroid-photo__image-area {
+    animation: none;
+  }
+  .welcome-polaroid {
+    animation: none !important;
+  }
+  .welcome-polaroid:hover {
+    transform: rotate(var(--polaroid-rotation));
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid > .app-card { grid-column: 1 / -1; min-width: 0; width: 100%; }
+  .dashboard-page__surface, .calendar-page, .content-stack { min-width: 0; width: 100%; max-width: 100%; }
+  .app-shell__bottom-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.25rem; }
+  .app-shell__bottom-link { min-width: 0; padding: 0.7rem 0.25rem; font-size: 0.74rem; }
+}
+
+@media (max-width: 480px) {
+  .app-shell__page { padding-inline: 0.75rem; }
+  .app-card, .dashboard-grid { width: 100%; min-width: 0; }
+  .dashboard-summary-bar { width: 100%; }
+  .task-summary { gap: 0.4rem; }
+  .task-summary span { padding: 0.48rem 0.62rem; font-size: 0.85rem; }
+  .calendar-toolbar, .calendar-tabs, .calendar-month-nav { width: 100%; }
+  .calendar-tabs button { flex: 1; }
+  .calendar-month-nav strong { min-width: 0; flex: 1; }
+  .month-card { width: 100%; max-width: 100%; overscroll-behavior-inline: contain; }
+  .upcoming-calendar, .upcoming-calendar section { width: 100%; min-width: 0; }
+  .upcoming-calendar li { align-items: stretch; flex-direction: column; padding-block: 0.35rem; }
+  .upcoming-event { width: 100%; grid-template-columns: 4rem 1.5rem minmax(0, 1fr); }
+  .upcoming-event__actions { align-self: flex-end; }
 }

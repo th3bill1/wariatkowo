@@ -18,6 +18,9 @@ import { useTasks } from "../hooks/useTasks";
 import { taskStatsService } from "../services/taskStatsService";
 import { useCalendar } from "../hooks/useCalendar";
 import { CALENDAR_TYPES } from "../content/calendar";
+import { PolaroidPhoto } from "../components/PolaroidPhoto";
+import { POLAROID_PHOTOS } from "../content/polaroids";
+import { randomUniqueItems } from "../utils/randomSelection";
 
 const pick = <T,>(items: readonly T[]): T =>
   items[Math.floor(Math.random() * items.length)];
@@ -48,6 +51,12 @@ export function DashboardPage() {
     refresh: refreshShopping,
   } = useShopping();
   const [status] = useState(() => pick(WARIATKOWO_STATUSES));
+  const [dashboardPhotos] = useState(() =>
+    randomUniqueItems(POLAROID_PHOTOS, 3).map((photo, index) => ({
+      ...photo,
+      rotation: [-5, 1.5, 5][index],
+    })),
+  );
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   const calendarFrom = dayKey(new Date());
   const calendarEnd = new Date();
@@ -89,11 +98,28 @@ export function DashboardPage() {
     .slice(0, 3);
   return (
     <div className="dashboard-page__surface">
-      <PageHeader
-        eyebrow={"Dzień dobry, " + member?.name + " ❤️"}
-        title={DASHBOARD_COPY.heading}
-        description="Mały przegląd tego, co dzieje się w Wariatkowie."
-      />
+      <div className="dashboard-hero">
+        <PageHeader
+          eyebrow={"Dzień dobry, " + member?.name + " ❤️"}
+          title={DASHBOARD_COPY.heading}
+          description="Mały przegląd tego, co dzieje się w Wariatkowie."
+        />
+        {dashboardPhotos.length ? (
+          <div className="dashboard-polaroids" aria-hidden="true">
+            {dashboardPhotos.map((photo, index) => (
+              <PolaroidPhoto
+                className={`dashboard-polaroid dashboard-polaroid--${index + 1}`}
+                key={photo.src}
+                loading={index === 0 ? "eager" : "lazy"}
+                position={photo.position}
+                rotation={photo.rotation}
+                size="small"
+                src={photo.src}
+              />
+            ))}
+          </div>
+        ) : null}
+      </div>
       <div className="dashboard-summary-bar">
         <div className="task-summary" aria-label="Podsumowanie zadań">
           <span>
