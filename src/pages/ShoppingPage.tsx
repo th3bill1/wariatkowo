@@ -1,5 +1,8 @@
 import { FormEvent, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { AppCard } from "../components/ui/AppCard";
+import { CommonProducts } from "../components/shopping/CommonProducts";
+import { ProductQuickAdd } from "../components/shopping/ProductQuickAdd";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
@@ -252,11 +255,8 @@ export function ShoppingPage() {
     removeItem,
     clearCompleted,
   } = useShopping();
-  const [quickName, setQuickName] = useState("");
-  const [quickError, setQuickError] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
-  const [showComposer, setShowComposer] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const todoItems = useMemo(
@@ -267,29 +267,6 @@ export function ShoppingPage() {
     () => items.filter((item) => item.checked),
     [items],
   );
-
-  const handleQuickAdd = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setQuickError(null);
-    setActionError(null);
-
-    if (!quickName.trim()) {
-      setQuickError("Nazwa produktu jest wymagana.");
-      return;
-    }
-
-    try {
-      await createItem({ name: quickName, quantity: null, category: null });
-      setQuickName("");
-      setShowComposer(false);
-    } catch (mutationError) {
-      setQuickError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Nie udało się dodać pozycji.",
-      );
-    }
-  };
 
   const handleEdit = (item: ShoppingItem) => {
     setEditingItemId(item.id);
@@ -361,58 +338,30 @@ export function ShoppingPage() {
         title={SHOPPING_COPY.heading}
         description="Może o niczym nie zapomnimy"
         actions={
-          <button
-            className="primary-button"
-            onClick={() => setShowComposer((current) => !current)}
-            type="button"
-          >
-            Co kupujemy?
-          </button>
+          <div className="page-header__action-group">
+            <Link className="primary-button" to="/zakupy/sklep">
+              Tryb sklepowy
+            </Link>
+            <Link className="secondary-button" to="/zakupy/produkty">
+              Historia produktów
+            </Link>
+          </div>
         }
       />
 
       <AppCard>
         <SectionHeader
           title="Szybkie dodanie"
-          description="Wpisz nazwę i wciśnij Enter."
+          description="Wpisz nazwę lub wybierz podpowiedź."
         />
-        <form className="quick-add" onSubmit={handleQuickAdd}>
-          <input
-            className="field__input quick-add__input"
-            maxLength={180}
-            onChange={(event) => setQuickName(event.target.value)}
-            placeholder={SHOPPING_COPY.quickAddPlaceholder}
-            value={quickName}
-          />
-          <button className="primary-button quick-add__button" type="submit">
-            Dodaj
-          </button>
-        </form>
-        {quickError ? (
-          <p className="form-message form-message--error">{quickError}</p>
-        ) : null}
+        <ProductQuickAdd items={items} onAdd={createItem} />
+        <CommonProducts
+          refreshKey={items
+            .map((item) => `${item.id}:${item.checked}`)
+            .join("|")}
+          onAdd={createItem}
+        />
       </AppCard>
-
-      {showComposer ? (
-        <AppCard>
-          <SectionHeader
-            title="Szczegóły pozycji"
-            description="Opcjonalne, jeśli mamy chwilę."
-          />
-          <ShoppingComposer
-            onCancel={() => setShowComposer(false)}
-            onSubmit={async (value) => {
-              await createItem({
-                name: value.name,
-                quantity: value.quantity.trim() ? value.quantity : null,
-                category: value.category.trim() ? value.category : null,
-              });
-              setShowComposer(false);
-            }}
-            submitLabel="Dodaj pozycję"
-          />
-        </AppCard>
-      ) : null}
 
       {actionError ? (
         <ErrorState

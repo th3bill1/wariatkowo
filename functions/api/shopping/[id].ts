@@ -1,5 +1,6 @@
 import { isAuthResponse, requireAuth } from "../../_shared/auth";
 import type { UpdateShoppingItemInput } from "../../../shared/models";
+import { normalizeProductName } from "../../../shared/shopping";
 import {
   error,
   isNonEmptyString,
@@ -99,6 +100,7 @@ async function updateItem(
   await env.DB.prepare(
     `UPDATE shopping_items
      SET name = ?,
+         normalized_name = ?,
          quantity = ?,
          category = ?,
          is_checked = ?,
@@ -109,6 +111,7 @@ async function updateItem(
   )
     .bind(
       nextName,
+      normalizeProductName(nextName),
       nextQuantity ?? null,
       nextCategory ?? null,
       nextChecked ? 1 : 0,

@@ -2,7 +2,7 @@ export const SHOPPING_CATEGORIES = [
   "Warzywa i owoce",
   "Pieczywo",
   "Nabiał",
-  "Mięso",
+  "Białko",
   "Napoje",
   "Chemia",
   "Dom",

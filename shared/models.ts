@@ -65,6 +65,7 @@ export type ShoppingItem = {
 };
 export type CreateShoppingItemInput = {
   name: string;
+  allowDuplicate?: boolean;
   quantity?: string | null;
   category?: string | null;
 };
@@ -74,4 +75,14 @@ export type UpdateShoppingItemInput = {
   category?: string | null;
   checked?: boolean;
   sortOrder?: number;
+};
+
+export type ShoppingProduct = {
+  id: string;
+  name: string;
+  normalizedName: string;
+  defaultCategory: string | null;
+  timesAdded: number;
+  lastAddedAt: string;
+  createdAt: string;
 };

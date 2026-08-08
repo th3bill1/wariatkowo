@@ -1,5 +1,6 @@
 export type ApiErrorCode =
   | "VALIDATION_ERROR"
+  | "DUPLICATE"
   | "UNAUTHORIZED"
   | "RATE_LIMITED"
   | "NOT_FOUND"

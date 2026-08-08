@@ -29,6 +29,8 @@ The frontend never talks to D1 directly. All task and shopping data goes through
 - `/dashboard` - Wariatkowo dziś
 - `/zadania` - task list
 - `/zakupy` - shopping list
+- `/zakupy/sklep` - mobile-first shop mode with large check-off controls
+- `/zakupy/produkty` - learned product dictionary and shopping history
 - `/powrot-do-wariatkowa` - quiz Powrót do Wariatkowa
 
 ## Project structure
