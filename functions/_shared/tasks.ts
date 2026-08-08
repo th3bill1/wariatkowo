@@ -97,3 +97,7 @@ export function isCompletionTransition(
 ): boolean {
   return !wasCompleted && willBeCompleted;
 }
+
+export function isUncompletionTransition(wasCompleted: boolean, willBeCompleted: boolean): boolean {
+  return wasCompleted && !willBeCompleted;
+}

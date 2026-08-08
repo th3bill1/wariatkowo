@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateNextDueDate,
   isCompletionTransition,
+  isUncompletionTransition,
   isTaskAssignment,
   parseRecurrence,
 } from "../functions/_shared/tasks";
@@ -44,5 +45,7 @@ describe("task rules", () => {
     expect(isCompletionTransition(false, true)).toBe(true);
     expect(isCompletionTransition(true, true)).toBe(false);
     expect(isCompletionTransition(true, false)).toBe(false);
+    expect(isUncompletionTransition(true, false)).toBe(true);
+    expect(isUncompletionTransition(false, false)).toBe(false);
   });
 });

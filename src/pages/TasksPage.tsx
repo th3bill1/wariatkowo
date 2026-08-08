@@ -420,7 +420,7 @@ export function TasksPage() {
   return (
     <div className="content-stack">
       <PageHeader
-        eyebrow={"Panel " + member?.name}
+        eyebrow={member?.slug === "miska" ? "Panel Miśki" : "Panel Miśka"}
         title={TASKS_COPY.heading}
         description="Sprawy do ogarnięcia."
         actions={

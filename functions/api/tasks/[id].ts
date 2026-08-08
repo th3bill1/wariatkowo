@@ -16,6 +16,7 @@ import {
 import {
   calculateNextDueDate,
   isCompletionTransition,
+  isUncompletionTransition,
   isTaskAssignment,
   parseRecurrence,
   TASK_COLUMNS,
@@ -90,7 +91,7 @@ async function updateTask(
     current.is_completed === 1,
     completed,
   );
-  const becomingIncomplete = current.is_completed === 1 && !completed;
+  const becomingIncomplete = isUncompletionTransition(current.is_completed === 1, completed);
   const timestamp = nowIso();
   const completedAt = becomingComplete
     ? timestamp
@@ -153,6 +154,12 @@ async function updateTask(
         ),
       );
     }
+  }
+  if (becomingIncomplete) {
+    statements.push(
+      contextStatement(env, "DELETE FROM task_completion_events WHERE task_id = ?", [id]),
+      contextStatement(env, "DELETE FROM tasks WHERE generated_from_task_id = ? AND is_completed = 0", [id]),
+    );
   }
   await env.DB.batch(statements);
   const updated = await loadTask(env, id);
