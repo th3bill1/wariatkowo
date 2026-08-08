@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Repeat2, UserRound, UsersRound } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import type { Task, TaskAssignment, TaskRecurrence } from "../../shared/models";
 import { useAuth } from "../auth/AuthContext";
 import { AppCard } from "../components/ui/AppCard";
@@ -335,6 +336,7 @@ function TaskRow({
   );
 }
 export function TasksPage() {
+  const location = useLocation();
   const { member } = useAuth();
   const {
     tasks,
@@ -345,7 +347,9 @@ export function TasksPage() {
     updateTask,
     removeTask,
   } = useTasks();
-  const [composerOpen, setComposerOpen] = useState(false),
+  const [composerOpen, setComposerOpen] = useState(
+      () => new URLSearchParams(location.search).get("add") === "1",
+    ),
     [editingId, setEditingId] = useState<string | null>(null),
     [deleteId, setDeleteId] = useState<string | null>(null),
     [actionError, setActionError] = useState<string | null>(null),

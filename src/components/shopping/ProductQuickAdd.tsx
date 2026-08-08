@@ -157,7 +157,9 @@ export function ProductQuickAdd({
         {!compact && name.trim() ? (
           <div className="quick-add__details">
             <label className="field">
-              <span className="field__label">Ilość <small>(opcjonalnie)</small></span>
+              <span className="field__label">
+                Ilość <small>(opcjonalnie)</small>
+              </span>
               <input
                 className="field__input"
                 maxLength={60}
@@ -167,10 +169,20 @@ export function ProductQuickAdd({
               />
             </label>
             <label className="field">
-              <span className="field__label">Kategoria <small>(opcjonalnie)</small></span>
-              <select className="field__input" onChange={(event) => setCategory(event.target.value)} value={category}>
+              <span className="field__label">
+                Kategoria <small>(opcjonalnie)</small>
+              </span>
+              <select
+                className="field__input"
+                onChange={(event) => setCategory(event.target.value)}
+                value={category}
+              >
                 <option value="">Bez kategorii</option>
-                {SHOPPING_CATEGORIES.map((option) => <option key={option} value={option}>{option}</option>)}
+                {SHOPPING_CATEGORIES.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
               </select>
             </label>
           </div>

@@ -31,6 +31,14 @@ The frontend never talks to D1 directly. All task and shopping data goes through
 - `/zakupy` - shopping list
 - `/zakupy/sklep` - mobile-first shop mode with large check-off controls
 - `/zakupy/produkty` - learned product dictionary and shopping history
+- `/kalendarz` - household calendar with month and upcoming views
+
+### Household calendar
+
+Calendar data is stored in D1 by `0004_calendar.sql`. Authenticated Pages Functions expose range-limited CRUD under `/api/calendar`; creator identity always comes from the current server session. All-day events use `YYYY-MM-DD`, while timed events use UTC ISO timestamps and are rendered in the browser's local Polish time.
+
+The dashboard loads tasks, shopping, seven-day task statistics, and the next fourteen days of calendar events in parallel. Task, shopping, and calendar hooks revalidate on window focus, visibility restoration, and reconnect so changes made on another device become visible without WebSockets.
+
 - `/powrot-do-wariatkowa` - quiz Powrót do Wariatkowa
 
 ## Project structure

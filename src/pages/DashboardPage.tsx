@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Plus, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { TaskStats } from "../../shared/models";
 import { useAuth } from "../auth/AuthContext";
@@ -15,6 +16,8 @@ import { WARIATKOWO_STATUSES } from "../content/statuses";
 import { useShopping } from "../hooks/useShopping";
 import { useTasks } from "../hooks/useTasks";
 import { taskStatsService } from "../services/taskStatsService";
+import { useCalendar } from "../hooks/useCalendar";
+import { CALENDAR_TYPES } from "../content/calendar";
 
 const pick = <T,>(items: readonly T[]): T =>
   items[Math.floor(Math.random() * items.length)];
@@ -45,6 +48,14 @@ export function DashboardPage() {
     refresh: refreshShopping,
   } = useShopping();
   const [status] = useState(() => pick(WARIATKOWO_STATUSES));
+  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+  const calendarFrom = dayKey(new Date());
+  const calendarEnd = new Date();
+  calendarEnd.setDate(calendarEnd.getDate() + 14);
+  const { events: calendarEvents } = useCalendar(
+    calendarFrom,
+    dayKey(calendarEnd),
+  );
   const [stats, setStats] = useState<TaskStats | null>(null);
   useEffect(() => {
     void taskStatsService
@@ -62,6 +73,20 @@ export function DashboardPage() {
     (task) => task.dueDate && dayKey(task.dueDate) === today,
   ).length;
   const mine = open.filter((task) => task.assignment === member?.slug).length;
+  const todayEvents = calendarEvents.filter(
+    (event) => dayKey(event.startDate) === today,
+  );
+  const importantTasks = open
+    .filter((task) => task.dueDate && dayKey(task.dueDate) <= today)
+    .slice(0, 3);
+  const recurringSoon = open
+    .filter(
+      (task) =>
+        task.recurrence &&
+        task.dueDate &&
+        dayKey(task.dueDate) <= dayKey(calendarEnd),
+    )
+    .slice(0, 3);
   return (
     <div className="dashboard-page__surface">
       <PageHeader
@@ -69,18 +94,88 @@ export function DashboardPage() {
         title={DASHBOARD_COPY.heading}
         description="Mały przegląd tego, co dzieje się w Wariatkowie."
       />
-      <div className="task-summary" aria-label="Podsumowanie zadań">
-        <span>
-          <strong>{mine}</strong> dla Ciebie
-        </span>
-        <span>
-          <strong>{dueToday}</strong> na dziś
-        </span>
-        <span className={overdue ? "task-summary__alert" : ""}>
-          <strong>{overdue}</strong> po terminie
-        </span>
+      <div className="dashboard-summary-bar">
+        <div className="task-summary" aria-label="Podsumowanie zadań">
+          <span>
+            <strong>{mine}</strong> dla Ciebie
+          </span>
+          <span>
+            <strong>{dueToday}</strong> na dziś
+          </span>
+          <span className={overdue ? "task-summary__alert" : ""}>
+            <strong>{overdue}</strong> po terminie
+          </span>
+        </div>
+        <div className="dashboard-quick-add">
+          <button
+            aria-expanded={quickActionsOpen}
+            aria-label={
+              quickActionsOpen ? "Zamknij szybkie dodawanie" : "Dodaj"
+            }
+            className="dashboard-quick-add__toggle"
+            onClick={() => setQuickActionsOpen((open) => !open)}
+            type="button"
+          >
+            {quickActionsOpen ? <X /> : <Plus />}
+          </button>
+          {quickActionsOpen ? (
+            <div
+              className="dashboard-quick-actions"
+              aria-label="Szybkie dodawanie"
+            >
+              <Link to="/zadania?add=1">Zadanie</Link>
+              <Link to="/zakupy">Zakupy</Link>
+              <Link to="/kalendarz?add=1">Wydarzenie</Link>
+            </div>
+          ) : null}
+        </div>
       </div>
       <div className="dashboard-grid">
+        <AppCard className="dashboard-card dashboard-card--today">
+          <SectionHeader
+            title="Dziś"
+            description={new Intl.DateTimeFormat("pl-PL", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+            }).format(new Date())}
+          />
+          {importantTasks.length || todayEvents.length ? (
+            <ul className="dashboard-preview-list">
+              {importantTasks.map((task) => (
+                <li className="dashboard-preview-list__item" key={task.id}>
+                  <Link to="/zadania">
+                    <strong>
+                      {dayKey(task.dueDate!) < today ? "⚠ " : "✓ "}
+                      {task.title}
+                    </strong>
+                  </Link>
+                </li>
+              ))}
+              {todayEvents.slice(0, 3).map((event) => (
+                <li className="dashboard-preview-list__item" key={event.id}>
+                  <Link to="/kalendarz">
+                    <strong>
+                      📅{" "}
+                      {event.allDay
+                        ? ""
+                        : new Intl.DateTimeFormat("pl-PL", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }).format(new Date(event.startDate)) + " — "}
+                      {event.title}
+                    </strong>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              title="Podejrzanie spokojnie."
+              description="Na dziś nic pilnego."
+            />
+          )}
+        </AppCard>
         <AppCard className="dashboard-card dashboard-card--tasks">
           <SectionHeader
             title={DASHBOARD_COPY.taskCardTitle}
@@ -172,23 +267,112 @@ export function DashboardPage() {
             />
           ) : null}
           {shopping.length ? (
+            <>
+              <ul className="dashboard-preview-list">
+                {[...shopping]
+                  .sort(
+                    (a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt),
+                  )
+                  .slice(0, 3)
+                  .map((item) => (
+                    <li className="dashboard-preview-list__item" key={item.id}>
+                      <div>
+                        <p className="dashboard-preview-list__title">
+                          {item.name}
+                        </p>
+                        {item.quantity || item.category ? (
+                          <p className="dashboard-preview-list__meta">
+                            {[item.quantity, item.category]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+              <Link
+                className="secondary-button dashboard-shop-mode"
+                to="/zakupy/sklep"
+              >
+                Tryb sklepowy
+              </Link>
+            </>
+          ) : null}
+        </AppCard>
+        {recurringSoon.length ? (
+          <AppCard className="dashboard-card dashboard-card--recurring">
+            <SectionHeader
+              title="Nadchodzące obowiązki"
+              description="Powtarzalne, więc same wrócą."
+            />
             <ul className="dashboard-preview-list">
-              {shopping.slice(0, 5).map((item) => (
-                <li className="dashboard-preview-list__item" key={item.id}>
+              {recurringSoon.map((task) => (
+                <li className="dashboard-preview-list__item" key={task.id}>
                   <div>
-                    <p className="dashboard-preview-list__title">{item.name}</p>
-                    {item.quantity || item.category ? (
-                      <p className="dashboard-preview-list__meta">
-                        {[item.quantity, item.category]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </p>
-                    ) : null}
+                    <p className="dashboard-preview-list__title">
+                      {task.title} ↻
+                    </p>
+                    <p className="dashboard-preview-list__meta">
+                      {new Intl.DateTimeFormat("pl-PL", {
+                        day: "numeric",
+                        month: "long",
+                      }).format(new Date(task.dueDate!))}
+                    </p>
                   </div>
                 </li>
               ))}
             </ul>
-          ) : null}
+          </AppCard>
+        ) : null}
+        <AppCard className="dashboard-card dashboard-card--calendar">
+          <SectionHeader
+            title="Najbliższe"
+            description="Co nadciąga do Wariatkowa?"
+            actions={
+              <Link className="app-link-button" to="/kalendarz">
+                Kalendarz
+              </Link>
+            }
+          />
+          {calendarEvents.length ? (
+            <ul className="dashboard-preview-list">
+              {calendarEvents.slice(0, 3).map((event) => {
+                const meta = CALENDAR_TYPES.find(
+                  (item) => item.value === event.type,
+                );
+                return (
+                  <li className="dashboard-preview-list__item" key={event.id}>
+                    <div>
+                      <p className="dashboard-preview-list__title">
+                        {meta?.icon} {event.title}
+                      </p>
+                      <p className="dashboard-preview-list__meta">
+                        {dayKey(event.startDate) === today
+                          ? "Dziś"
+                          : new Intl.DateTimeFormat("pl-PL", {
+                              day: "numeric",
+                              month: "long",
+                            }).format(new Date(event.startDate))}
+                        {event.allDay
+                          ? ""
+                          : " · " +
+                            new Intl.DateTimeFormat("pl-PL", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }).format(new Date(event.startDate))}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <EmptyState
+              title="Nic na horyzoncie"
+              description="Kalendarz milczy."
+            />
+          )}
         </AppCard>
         <AppCard className="dashboard-card dashboard-card--stats">
           <SectionHeader

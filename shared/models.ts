@@ -86,3 +86,36 @@ export type ShoppingProduct = {
   lastAddedAt: string;
   createdAt: string;
 };
+
+export type CalendarEventType =
+  | "event"
+  | "appointment"
+  | "guest"
+  | "trip"
+  | "birthday"
+  | "anniversary"
+  | "delivery"
+  | "bill"
+  | "other";
+export type CalendarEvent = {
+  id: string;
+  title: string;
+  description: string | null;
+  type: CalendarEventType;
+  startDate: string;
+  endDate: string | null;
+  allDay: boolean;
+  createdByMemberId: string;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+};
+export type CreateCalendarEventInput = {
+  title: string;
+  description?: string | null;
+  type?: CalendarEventType;
+  startDate: string;
+  endDate?: string | null;
+  allDay?: boolean;
+};
+export type UpdateCalendarEventInput = Partial<CreateCalendarEventInput>;

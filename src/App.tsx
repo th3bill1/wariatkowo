@@ -9,6 +9,7 @@ import { ShoppingProductsPage } from "./pages/ShoppingProductsPage";
 import { ShopModePage } from "./pages/ShopModePage";
 import { TasksPage } from "./pages/TasksPage";
 import { WelcomePage } from "./pages/WelcomePage";
+import { CalendarPage } from "./pages/CalendarPage";
 
 export function App() {
   return (
@@ -38,6 +39,7 @@ export function App() {
         <Route element={<TasksPage />} path="/zadania" />
         <Route element={<ShoppingPage />} path="/zakupy" />
         <Route element={<ShoppingProductsPage />} path="/zakupy/produkty" />
+        <Route element={<CalendarPage />} path="/kalendarz" />
         <Route element={<Navigate replace to="/dashboard" />} path="*" />
       </Route>
     </Routes>
