@@ -1,8 +1,16 @@
-import { useEffect, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { CoffeeIcon, HeartIcon, HouseIcon, PawIcon, PizzaIcon, PlantIcon, SuitcaseIcon } from './DoodleIcons';
-import type { DoodlePlacement } from '../content/doodles';
-import { RANDOM_EVENT_COPY } from '../content/randomEvents';
+import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
+import {
+  CoffeeIcon,
+  HeartIcon,
+  HouseIcon,
+  PawIcon,
+  PizzaIcon,
+  PlantIcon,
+  SuitcaseIcon,
+} from "./DoodleIcons";
+import type { DoodlePlacement } from "../content/doodles";
+import { RANDOM_EVENT_COPY } from "../content/randomEvents";
 
 const ICONS = {
   coffee: CoffeeIcon,
@@ -31,7 +39,8 @@ export function Doodle({
 }: DoodleProps) {
   const [isReacting, setIsReacting] = useState(false);
 
-  const iconName = placement.visual.kind === 'svg' ? placement.visual.icon : null;
+  const iconName =
+    placement.visual.kind === "svg" ? placement.visual.icon : null;
   const IconComponent = iconName ? ICONS[iconName] : null;
   const isInteractive = Boolean(placement.interactive);
 
@@ -45,32 +54,39 @@ export function Doodle({
   }, [isInteractive, isReacting]);
 
   const style = {
-    '--doodle-x': `${placement.x}%`,
-    '--doodle-y': `${placement.y}%`,
-    '--doodle-mobile-x': `${placement.mobileX ?? placement.x}%`,
-    '--doodle-mobile-y': `${placement.mobileY ?? placement.y}%`,
-    '--doodle-size': `${placement.size}px`,
-    '--doodle-rotate': `${placement.rotate}deg`,
-    '--doodle-depth': `${placement.depth}`,
+    "--doodle-x": `${placement.x}%`,
+    "--doodle-y": `${placement.y}%`,
+    "--doodle-mobile-x": `${placement.mobileX ?? placement.x}%`,
+    "--doodle-mobile-y": `${placement.mobileY ?? placement.y}%`,
+    "--doodle-size": `${placement.size}px`,
+    "--doodle-rotate": `${placement.rotate}deg`,
+    "--doodle-depth": `${placement.depth}`,
   } as CSSProperties;
 
   const className = [
-    'doodle',
+    "doodle",
     `doodle--${placement.id}`,
-    parallaxEnabled ? 'doodle--parallax' : '',
-    reducedMotion ? 'doodle--reduced-motion' : '',
-    totalChaos ? 'doodle--chaos' : '',
-    isInteractive ? 'doodle--interactive' : '',
+    parallaxEnabled ? "doodle--parallax" : "",
+    reducedMotion ? "doodle--reduced-motion" : "",
+    totalChaos ? "doodle--chaos" : "",
+    isInteractive ? "doodle--interactive" : "",
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(" ");
 
-  const isDogIcon = iconName === 'paw';
+  const isDogIcon = iconName === "paw";
 
   let content: JSX.Element | null = null;
 
-  if (placement.visual.kind === 'image') {
-    content = <img alt={placement.visual.alt} className="doodle__image" loading="lazy" src={placement.visual.src} />;
+  if (placement.visual.kind === "image") {
+    content = (
+      <img
+        alt={placement.visual.alt}
+        className="doodle__image"
+        loading="lazy"
+        src={placement.visual.src}
+      />
+    );
   } else if (IconComponent) {
     content = <IconComponent className="doodle__icon" />;
   }
@@ -86,7 +102,7 @@ export function Doodle({
             onDogClick();
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
               e.preventDefault();
               setIsReacting(true);
               onDogClick();

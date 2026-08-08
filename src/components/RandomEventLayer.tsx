@@ -1,6 +1,10 @@
-import { useEffect, useMemo } from 'react';
-import { HeartIcon } from './DoodleIcons';
-import { RANDOM_EVENT_COPY, RANDOM_EVENT_DEFINITIONS, type RandomEventId } from '../content/randomEvents';
+import { useEffect, useMemo } from "react";
+import { HeartIcon } from "./DoodleIcons";
+import {
+  RANDOM_EVENT_COPY,
+  RANDOM_EVENT_DEFINITIONS,
+  type RandomEventId,
+} from "../content/randomEvents";
 
 type RandomEventLayerProps = {
   eventId: RandomEventId | null;
@@ -9,10 +13,19 @@ type RandomEventLayerProps = {
 };
 
 function getEventLabel(eventId: RandomEventId): string {
-  return RANDOM_EVENT_DEFINITIONS.find((definition) => definition.id === eventId)?.label ?? '';
+  return (
+    RANDOM_EVENT_DEFINITIONS.find((definition) => definition.id === eventId)
+      ?.label ?? ""
+  );
 }
 
-function FallingHeartEvent({ onComplete, label }: { onComplete: () => void; label: string }) {
+function FallingHeartEvent({
+  onComplete,
+  label,
+}: {
+  onComplete: () => void;
+  label: string;
+}) {
   const hearts = useMemo(
     () =>
       Array.from({ length: 6 }, (_, index) => ({
@@ -30,7 +43,11 @@ function FallingHeartEvent({ onComplete, label }: { onComplete: () => void; labe
   }, [onComplete]);
 
   return (
-    <div aria-label={label} className="random-event random-event--hearts" role="status">
+    <div
+      aria-label={label}
+      className="random-event random-event--hearts"
+      role="status"
+    >
       <p className="random-event__label">{label}</p>
       <div className="random-event__hearts">
         {hearts.map((heart) => (
@@ -60,21 +77,31 @@ function SuspiciousStatusEvent({ onComplete }: { onComplete: () => void }) {
   }, [onComplete]);
 
   return (
-    <div aria-label={RANDOM_EVENT_COPY.suspiciousStatus} className="random-event random-event--status" role="status">
-      <p className="random-event__status-copy">{RANDOM_EVENT_COPY.suspiciousStatus}</p>
+    <div
+      aria-label={RANDOM_EVENT_COPY.suspiciousStatus}
+      className="random-event random-event--status"
+      role="status"
+    >
+      <p className="random-event__status-copy">
+        {RANDOM_EVENT_COPY.suspiciousStatus}
+      </p>
     </div>
   );
 }
 
-export function RandomEventLayer({ eventId, onComplete, onLogoMalfunctionChange }: RandomEventLayerProps) {
-  const label = eventId ? getEventLabel(eventId) : '';
+export function RandomEventLayer({
+  eventId,
+  onComplete,
+  onLogoMalfunctionChange,
+}: RandomEventLayerProps) {
+  const label = eventId ? getEventLabel(eventId) : "";
 
   useEffect(() => {
     if (!eventId) {
       return;
     }
 
-    if (eventId === 'logoMalfunction') {
+    if (eventId === "logoMalfunction") {
       onLogoMalfunctionChange(true);
       const timer = window.setTimeout(() => {
         onLogoMalfunctionChange(false);
@@ -94,15 +121,13 @@ export function RandomEventLayer({ eventId, onComplete, onLogoMalfunctionChange 
     return null;
   }
 
-  if (eventId === 'fallingHeart') {
+  if (eventId === "fallingHeart") {
     return <FallingHeartEvent label={label} onComplete={onComplete} />;
   }
 
-  if (eventId === 'suspiciousStatus') {
+  if (eventId === "suspiciousStatus") {
     return <SuspiciousStatusEvent onComplete={onComplete} />;
   }
 
-  return (
-    <div aria-hidden="true" className="random-event random-event--logo" />
-  );
+  return <div aria-hidden="true" className="random-event random-event--logo" />;
 }

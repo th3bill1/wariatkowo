@@ -4,19 +4,19 @@ export type GreetingContext = {
 };
 
 export const FIRST_VISIT_GREETINGS = [
-  'Witamy w Wariatkowie.',
-  'Seksowne Miśki witają!',
+  "Witamy w Wariatkowie.",
+  "Seksowne Miśki witają!",
 ] as const;
 
 export const RETURNING_GREETINGS = [
-  'Witamy ponownie 😎',
-  'No w końcu tu jesteś...',
+  "Witamy ponownie 😎",
+  "No w końcu tu jesteś...",
 ] as const;
 
 export const TIME_BASED_GREETINGS = {
-  morning: 'Dzień dobry ❤️',
-  evening: 'Dobry wieczór ❤️',
-  night: 'Idź spać.',
+  morning: "Dzień dobry ❤️",
+  evening: "Dobry wieczór ❤️",
+  night: "Idź spać.",
 } as const;
 
 export function pickGreeting(context: GreetingContext): string {

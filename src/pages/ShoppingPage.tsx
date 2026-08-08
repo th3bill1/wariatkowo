@@ -1,15 +1,15 @@
-import { FormEvent, useMemo, useState } from 'react';
-import { AppCard } from '../components/ui/AppCard';
-import { EmptyState } from '../components/ui/EmptyState';
-import { ErrorState } from '../components/ui/ErrorState';
-import { LoadingState } from '../components/ui/LoadingState';
-import { PageHeader } from '../components/ui/PageHeader';
-import { SectionHeader } from '../components/ui/SectionHeader';
-import { LOADING_COPY } from '../content/loading';
-import { SHOPPING_CATEGORIES } from '../content/shoppingCategories';
-import { SHOPPING_COPY } from '../content/shopping';
-import { useShopping } from '../hooks/useShopping';
-import type { ShoppingItem } from '../../shared/models';
+import { FormEvent, useMemo, useState } from "react";
+import { AppCard } from "../components/ui/AppCard";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorState } from "../components/ui/ErrorState";
+import { LoadingState } from "../components/ui/LoadingState";
+import { PageHeader } from "../components/ui/PageHeader";
+import { SectionHeader } from "../components/ui/SectionHeader";
+import { LOADING_COPY } from "../content/loading";
+import { SHOPPING_CATEGORIES } from "../content/shoppingCategories";
+import { SHOPPING_COPY } from "../content/shopping";
+import { useShopping } from "../hooks/useShopping";
+import type { ShoppingItem } from "../../shared/models";
 
 type ShoppingFormState = {
   name: string;
@@ -18,9 +18,9 @@ type ShoppingFormState = {
 };
 
 const EMPTY_FORM: ShoppingFormState = {
-  name: '',
-  quantity: '',
-  category: '',
+  name: "",
+  quantity: "",
+  category: "",
 };
 
 function ShoppingComposer({
@@ -34,7 +34,9 @@ function ShoppingComposer({
   onSubmit: (value: ShoppingFormState) => Promise<void>;
   submitLabel: string;
 }) {
-  const [form, setForm] = useState<ShoppingFormState>(initialValue ?? EMPTY_FORM);
+  const [form, setForm] = useState<ShoppingFormState>(
+    initialValue ?? EMPTY_FORM,
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -50,7 +52,11 @@ function ShoppingComposer({
           await onSubmit(form);
           setForm(initialValue ?? EMPTY_FORM);
         } catch (saveError) {
-          setError(saveError instanceof Error ? saveError.message : 'Nie udało się zapisać pozycji.');
+          setError(
+            saveError instanceof Error
+              ? saveError.message
+              : "Nie udało się zapisać pozycji.",
+          );
         } finally {
           setIsSaving(false);
         }
@@ -61,7 +67,9 @@ function ShoppingComposer({
         <input
           className="field__input"
           maxLength={180}
-          onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
+          onChange={(event) =>
+            setForm((current) => ({ ...current, name: event.target.value }))
+          }
           placeholder={SHOPPING_COPY.quickAddPlaceholder}
           required
           value={form.name}
@@ -73,7 +81,9 @@ function ShoppingComposer({
         <input
           className="field__input"
           maxLength={60}
-          onChange={(event) => setForm((current) => ({ ...current, quantity: event.target.value }))}
+          onChange={(event) =>
+            setForm((current) => ({ ...current, quantity: event.target.value }))
+          }
           placeholder="2 opak."
           value={form.quantity}
         />
@@ -83,7 +93,9 @@ function ShoppingComposer({
         <span className="field__label">{SHOPPING_COPY.categoryLabel}</span>
         <select
           className="field__input"
-          onChange={(event) => setForm((current) => ({ ...current, category: event.target.value }))}
+          onChange={(event) =>
+            setForm((current) => ({ ...current, category: event.target.value }))
+          }
           value={form.category}
         >
           <option value="">Wybierz kategorię</option>
@@ -95,14 +107,21 @@ function ShoppingComposer({
         </select>
       </label>
 
-      {error ? <p className="form-message form-message--error">{error}</p> : null}
+      {error ? (
+        <p className="form-message form-message--error">{error}</p>
+      ) : null}
 
       <div className="shopping-form__actions">
         <button className="primary-button" disabled={isSaving} type="submit">
-          {isSaving ? 'Zapisywanie...' : submitLabel}
+          {isSaving ? "Zapisywanie..." : submitLabel}
         </button>
         {onCancel ? (
-          <button className="secondary-button" disabled={isSaving} onClick={onCancel} type="button">
+          <button
+            className="secondary-button"
+            disabled={isSaving}
+            onClick={onCancel}
+            type="button"
+          >
             {SHOPPING_COPY.cancelButton}
           </button>
         ) : null}
@@ -134,48 +153,75 @@ function ShoppingRow({
 }) {
   const initialForm = {
     name: item.name,
-    quantity: item.quantity ?? '',
-    category: item.category ?? '',
+    quantity: item.quantity ?? "",
+    category: item.category ?? "",
   };
 
   return (
-    <li className={['shopping-row', item.checked ? 'shopping-row--checked' : ''].join(' ')}>
+    <li
+      className={[
+        "shopping-row",
+        item.checked ? "shopping-row--checked" : "",
+      ].join(" ")}
+    >
       <div className="shopping-row__main">
         <button
-          aria-label={item.checked ? 'Oznacz jako do kupienia' : 'Oznacz jako kupione'}
+          aria-label={
+            item.checked ? "Oznacz jako do kupienia" : "Oznacz jako kupione"
+          }
           className="shopping-row__check"
           onClick={() => void onToggle(item)}
           type="button"
         >
           <span className="shopping-row__checkmark" aria-hidden="true">
-            {item.checked ? '✓' : '□'}
+            {item.checked ? "✓" : "□"}
           </span>
         </button>
 
         <div className="shopping-row__copy">
           <div className="shopping-row__title-line">
             <p className="shopping-row__title">{item.name}</p>
-            {item.quantity ? <span className="shopping-row__badge">{item.quantity}</span> : null}
+            {item.quantity ? (
+              <span className="shopping-row__badge">{item.quantity}</span>
+            ) : null}
           </div>
-          {item.category ? <p className="shopping-row__meta">{item.category}</p> : null}
+          {item.category ? (
+            <p className="shopping-row__meta">{item.category}</p>
+          ) : null}
         </div>
       </div>
 
       <div className="shopping-row__actions">
-        <button className="ghost-button" onClick={() => onEdit(item)} type="button">
+        <button
+          className="ghost-button"
+          onClick={() => onEdit(item)}
+          type="button"
+        >
           {SHOPPING_COPY.editButton}
         </button>
         {deletePending ? (
           <>
-            <button className="ghost-button" onClick={onCancelDelete} type="button">
+            <button
+              className="ghost-button"
+              onClick={onCancelDelete}
+              type="button"
+            >
               {SHOPPING_COPY.cancelButton}
             </button>
-            <button className="ghost-button ghost-button--danger" onClick={() => onDelete(item)} type="button">
+            <button
+              className="ghost-button ghost-button--danger"
+              onClick={() => onDelete(item)}
+              type="button"
+            >
               Usuń teraz
             </button>
           </>
         ) : (
-          <button className="ghost-button ghost-button--danger" onClick={() => onDelete(item)} type="button">
+          <button
+            className="ghost-button ghost-button--danger"
+            onClick={() => onDelete(item)}
+            type="button"
+          >
             {SHOPPING_COPY.deleteButton}
           </button>
         )}
@@ -196,16 +242,31 @@ function ShoppingRow({
 }
 
 export function ShoppingPage() {
-  const { items, loadState, error, refresh, createItem, updateItem, removeItem, clearCompleted } = useShopping();
-  const [quickName, setQuickName] = useState('');
+  const {
+    items,
+    loadState,
+    error,
+    refresh,
+    createItem,
+    updateItem,
+    removeItem,
+    clearCompleted,
+  } = useShopping();
+  const [quickName, setQuickName] = useState("");
   const [quickError, setQuickError] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [showComposer, setShowComposer] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const todoItems = useMemo(() => items.filter((item) => !item.checked), [items]);
-  const boughtItems = useMemo(() => items.filter((item) => item.checked), [items]);
+  const todoItems = useMemo(
+    () => items.filter((item) => !item.checked),
+    [items],
+  );
+  const boughtItems = useMemo(
+    () => items.filter((item) => item.checked),
+    [items],
+  );
 
   const handleQuickAdd = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -213,16 +274,20 @@ export function ShoppingPage() {
     setActionError(null);
 
     if (!quickName.trim()) {
-      setQuickError('Nazwa produktu jest wymagana.');
+      setQuickError("Nazwa produktu jest wymagana.");
       return;
     }
 
     try {
       await createItem({ name: quickName, quantity: null, category: null });
-      setQuickName('');
+      setQuickName("");
       setShowComposer(false);
     } catch (mutationError) {
-      setQuickError(mutationError instanceof Error ? mutationError.message : 'Nie udało się dodać pozycji.');
+      setQuickError(
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Nie udało się dodać pozycji.",
+      );
     }
   };
 
@@ -243,12 +308,19 @@ export function ShoppingPage() {
       await removeItem(item.id);
       setPendingDeleteId(null);
     } catch (deleteError) {
-      setActionError(deleteError instanceof Error ? deleteError.message : 'Nie udało się usunąć pozycji.');
+      setActionError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Nie udało się usunąć pozycji.",
+      );
       setPendingDeleteId(null);
     }
   };
 
-  const handleSaveEdit = async (item: ShoppingItem, value: ShoppingFormState) => {
+  const handleSaveEdit = async (
+    item: ShoppingItem,
+    value: ShoppingFormState,
+  ) => {
     setActionError(null);
 
     try {
@@ -259,7 +331,11 @@ export function ShoppingPage() {
       });
       setEditingItemId(null);
     } catch (saveError) {
-      setActionError(saveError instanceof Error ? saveError.message : 'Nie udało się zapisać pozycji.');
+      setActionError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Nie udało się zapisać pozycji.",
+      );
       throw saveError;
     }
   };
@@ -270,7 +346,11 @@ export function ShoppingPage() {
     try {
       await updateItem(item.id, { checked: !item.checked });
     } catch (toggleError) {
-      setActionError(toggleError instanceof Error ? toggleError.message : 'Nie udało się zmienić stanu pozycji.');
+      setActionError(
+        toggleError instanceof Error
+          ? toggleError.message
+          : "Nie udało się zmienić stanu pozycji.",
+      );
     }
   };
 
@@ -281,14 +361,21 @@ export function ShoppingPage() {
         title={SHOPPING_COPY.heading}
         description="Szybkie dodawanie i wygodne odhaczanie."
         actions={
-          <button className="primary-button" onClick={() => setShowComposer((current) => !current)} type="button">
+          <button
+            className="primary-button"
+            onClick={() => setShowComposer((current) => !current)}
+            type="button"
+          >
             Co kupujemy?
           </button>
         }
       />
 
       <AppCard>
-        <SectionHeader title="Szybki dodatek" description="Wpisz nazwę i wciśnij Enter." />
+        <SectionHeader
+          title="Szybki dodatek"
+          description="Wpisz nazwę i wciśnij Enter."
+        />
         <form className="quick-add" onSubmit={handleQuickAdd}>
           <input
             className="field__input quick-add__input"
@@ -301,40 +388,66 @@ export function ShoppingPage() {
             Dodaj
           </button>
         </form>
-        {quickError ? <p className="form-message form-message--error">{quickError}</p> : null}
+        {quickError ? (
+          <p className="form-message form-message--error">{quickError}</p>
+        ) : null}
       </AppCard>
 
       {showComposer ? (
         <AppCard>
-          <SectionHeader title="Szczegóły pozycji" description="Opcjonalne, jeśli mamy chwilę." />
-          <ShoppingComposer onCancel={() => setShowComposer(false)} onSubmit={async (value) => {
-            await createItem({
-              name: value.name,
-              quantity: value.quantity.trim() ? value.quantity : null,
-              category: value.category.trim() ? value.category : null,
-            });
-            setShowComposer(false);
-          }} submitLabel="Dodaj pozycję" />
+          <SectionHeader
+            title="Szczegóły pozycji"
+            description="Opcjonalne, jeśli mamy chwilę."
+          />
+          <ShoppingComposer
+            onCancel={() => setShowComposer(false)}
+            onSubmit={async (value) => {
+              await createItem({
+                name: value.name,
+                quantity: value.quantity.trim() ? value.quantity : null,
+                category: value.category.trim() ? value.category : null,
+              });
+              setShowComposer(false);
+            }}
+            submitLabel="Dodaj pozycję"
+          />
         </AppCard>
       ) : null}
 
-      {actionError ? <ErrorState description={actionError} title="Nie udało się wykonać zmiany." /> : null}
-
-      {loadState === 'loading' ? <LoadingState label={LOADING_COPY.shopping} /> : null}
-      {loadState === 'error' ? (
-        <ErrorState description={error ?? 'Nie udało się pobrać zakupów.'} onRetry={refresh} title="Nie udało się pobrać zakupów." />
+      {actionError ? (
+        <ErrorState
+          description={actionError}
+          title="Nie udało się wykonać zmiany."
+        />
       ) : null}
 
-      {loadState === 'ready' && items.length === 0 ? (
+      {loadState === "loading" ? (
+        <LoadingState label={LOADING_COPY.shopping} />
+      ) : null}
+      {loadState === "error" ? (
+        <ErrorState
+          description={error ?? "Nie udało się pobrać zakupów."}
+          onRetry={refresh}
+          title="Nie udało się pobrać zakupów."
+        />
+      ) : null}
+
+      {loadState === "ready" && items.length === 0 ? (
         <AppCard>
-          <EmptyState description={SHOPPING_COPY.emptyDescription} title={SHOPPING_COPY.emptyTitle} />
+          <EmptyState
+            description={SHOPPING_COPY.emptyDescription}
+            title={SHOPPING_COPY.emptyTitle}
+          />
         </AppCard>
       ) : null}
 
-      {loadState === 'ready' && items.length > 0 ? (
+      {loadState === "ready" && items.length > 0 ? (
         <div className="shopping-layout">
           <AppCard>
-            <SectionHeader title={SHOPPING_COPY.todoSection} description={`${todoItems.length} pozycji`} />
+            <SectionHeader
+              title={SHOPPING_COPY.todoSection}
+              description={`${todoItems.length} pozycji`}
+            />
             <ul className="shopping-list">
               {todoItems.map((item) => (
                 <ShoppingRow
@@ -364,7 +477,11 @@ export function ShoppingPage() {
                     onClick={() => {
                       setActionError(null);
                       void clearCompleted().catch((clearError) => {
-                        setActionError(clearError instanceof Error ? clearError.message : 'Nie udało się usunąć kupionych pozycji.');
+                        setActionError(
+                          clearError instanceof Error
+                            ? clearError.message
+                            : "Nie udało się usunąć kupionych pozycji.",
+                        );
                       });
                     }}
                     type="button"

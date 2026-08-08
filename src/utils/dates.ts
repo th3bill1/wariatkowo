@@ -1,4 +1,6 @@
-export function formatPolishDateLabel(dateString: string | null): string | null {
+export function formatPolishDateLabel(
+  dateString: string | null,
+): string | null {
   if (!dateString) {
     return null;
   }
@@ -12,20 +14,20 @@ export function formatPolishDateLabel(dateString: string | null): string | null 
 
   const dueKey = new Date(dateString).toISOString().slice(0, 10);
   if (dueKey === todayKey) {
-    return 'Dzisiaj';
+    return "Dzisiaj";
   }
 
   if (dueKey === tomorrowKey) {
-    return 'Jutro';
+    return "Jutro";
   }
 
   if (dueKey < todayKey) {
-    return 'Po terminie';
+    return "Po terminie";
   }
 
-  return new Intl.DateTimeFormat('pl-PL', {
-    day: 'numeric',
-    month: 'long',
-    timeZone: 'UTC',
+  return new Intl.DateTimeFormat("pl-PL", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
   }).format(new Date(dateString));
 }

@@ -4,9 +4,9 @@ import {
   ShoppingBasket,
   Sparkles,
   type LucideIcon,
-} from 'lucide-react';
+} from "lucide-react";
 
-export type IconName = 'home' | 'tasks' | 'shopping' | 'quiz';
+export type IconName = "home" | "tasks" | "shopping" | "quiz";
 
 type IconProps = {
   name: IconName;

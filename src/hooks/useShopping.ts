@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { CreateShoppingItemInput, ShoppingItem, UpdateShoppingItemInput } from '../../shared/models';
-import { shoppingService } from '../services/shoppingService';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type {
+  CreateShoppingItemInput,
+  ShoppingItem,
+  UpdateShoppingItemInput,
+} from "../../shared/models";
+import { shoppingService } from "../services/shoppingService";
 
-export type ShoppingLoadState = 'idle' | 'loading' | 'ready' | 'error';
+export type ShoppingLoadState = "idle" | "loading" | "ready" | "error";
 
 function sortShoppingItems(items: ShoppingItem[]): ShoppingItem[] {
   return [...items].sort((first, second) => {
@@ -20,20 +24,24 @@ function sortShoppingItems(items: ShoppingItem[]): ShoppingItem[] {
 
 export function useShopping() {
   const [items, setItems] = useState<ShoppingItem[]>([]);
-  const [loadState, setLoadState] = useState<ShoppingLoadState>('loading');
+  const [loadState, setLoadState] = useState<ShoppingLoadState>("loading");
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoadState('loading');
+    setLoadState("loading");
     setError(null);
 
     try {
       const data = await shoppingService.getAll();
       setItems(sortShoppingItems(data));
-      setLoadState('ready');
+      setLoadState("ready");
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Nie udało się pobrać zakupów.');
-      setLoadState('error');
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Nie udało się pobrać zakupów.",
+      );
+      setLoadState("error");
     }
   }, []);
 
@@ -47,22 +55,31 @@ export function useShopping() {
     return created;
   }, []);
 
-  const updateItem = useCallback(async (id: string, input: UpdateShoppingItemInput) => {
-    let previous: ShoppingItem[] = [];
-    setItems((current) => {
-      previous = current;
-      return current.map((item) => (item.id === id ? { ...item, ...input } : item));
-    });
+  const updateItem = useCallback(
+    async (id: string, input: UpdateShoppingItemInput) => {
+      let previous: ShoppingItem[] = [];
+      setItems((current) => {
+        previous = current;
+        return current.map((item) =>
+          item.id === id ? { ...item, ...input } : item,
+        );
+      });
 
-    try {
-      const updated = await shoppingService.update(id, input);
-      setItems((current) => sortShoppingItems(current.map((item) => (item.id === id ? updated : item))));
-      return updated;
-    } catch (updateError) {
-      setItems(previous);
-      throw updateError;
-    }
-  }, []);
+      try {
+        const updated = await shoppingService.update(id, input);
+        setItems((current) =>
+          sortShoppingItems(
+            current.map((item) => (item.id === id ? updated : item)),
+          ),
+        );
+        return updated;
+      } catch (updateError) {
+        setItems(previous);
+        throw updateError;
+      }
+    },
+    [],
+  );
 
   const removeItem = useCallback(async (id: string) => {
     let previous: ShoppingItem[] = [];
@@ -105,6 +122,15 @@ export function useShopping() {
       removeItem,
       clearCompleted,
     }),
-    [clearCompleted, createItem, error, load, loadState, removeItem, items, updateItem],
+    [
+      clearCompleted,
+      createItem,
+      error,
+      load,
+      loadState,
+      removeItem,
+      items,
+      updateItem,
+    ],
   );
 }

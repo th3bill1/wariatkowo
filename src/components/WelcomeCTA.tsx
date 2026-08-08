@@ -1,4 +1,4 @@
-import { WELCOME_COPY } from '../content/welcome';
+import { WELCOME_COPY } from "../content/welcome";
 
 type WelcomeCTAProps = {
   onClick: () => void;
@@ -8,7 +8,9 @@ type WelcomeCTAProps = {
 export function WelcomeCTA({ onClick, isExiting }: WelcomeCTAProps) {
   return (
     <button
-      className={['welcome-cta', isExiting ? 'welcome-cta--exiting' : ''].join(' ')}
+      className={["welcome-cta", isExiting ? "welcome-cta--exiting" : ""].join(
+        " ",
+      )}
       onClick={onClick}
       type="button"
     >

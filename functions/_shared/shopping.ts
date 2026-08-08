@@ -1,4 +1,4 @@
-import type { ShoppingItem } from '../../shared/models';
+import type { ShoppingItem } from "../../shared/models";
 
 export type ShoppingRow = {
   id: string;

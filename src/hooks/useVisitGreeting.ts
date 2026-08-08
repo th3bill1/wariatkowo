@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { pickGreeting } from '../content/greetings';
-import { STORAGE_KEYS } from '../content/storageKeys';
-import { readStorageValue, writeStorageValue } from '../utils/storage';
+import { useEffect, useMemo, useState } from "react";
+import { pickGreeting } from "../content/greetings";
+import { STORAGE_KEYS } from "../content/storageKeys";
+import { readStorageValue, writeStorageValue } from "../utils/storage";
 
 export type VisitorProfile = {
   firstSeenAt: number;
@@ -29,7 +29,9 @@ export function useVisitGreeting(options: { recordVisit?: boolean } = {}): {
   profile: VisitorProfile | null;
 } {
   const recordVisit = options.recordVisit ?? true;
-  const [profile, setProfile] = useState<VisitorProfile | null>(() => readProfile());
+  const [profile, setProfile] = useState<VisitorProfile | null>(() =>
+    readProfile(),
+  );
 
   useEffect(() => {
     const now = Date.now();
@@ -47,8 +49,11 @@ export function useVisitGreeting(options: { recordVisit?: boolean } = {}): {
         };
 
     if (recordVisit) {
-      writeStorageValue(STORAGE_KEYS.visitorProfile, JSON.stringify(nextProfile));
-      writeStorageValue(STORAGE_KEYS.hasVisited, 'true');
+      writeStorageValue(
+        STORAGE_KEYS.visitorProfile,
+        JSON.stringify(nextProfile),
+      );
+      writeStorageValue(STORAGE_KEYS.hasVisited, "true");
     }
     setProfile(nextProfile);
   }, [recordVisit]);

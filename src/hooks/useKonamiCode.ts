@@ -1,16 +1,16 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 const KONAMI_SEQUENCE = [
-  'ArrowUp',
-  'ArrowUp',
-  'ArrowDown',
-  'ArrowDown',
-  'ArrowLeft',
-  'ArrowRight',
-  'ArrowLeft',
-  'ArrowRight',
-  'b',
-  'a',
+  "ArrowUp",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowLeft",
+  "ArrowRight",
+  "b",
+  "a",
 ] as const;
 
 type UseKonamiCodeOptions = {
@@ -18,7 +18,10 @@ type UseKonamiCodeOptions = {
   onActivate: () => void;
 };
 
-export function useKonamiCode({ enabled, onActivate }: UseKonamiCodeOptions): void {
+export function useKonamiCode({
+  enabled,
+  onActivate,
+}: UseKonamiCodeOptions): void {
   const sequenceIndex = useRef(0);
 
   useEffect(() => {
@@ -30,9 +33,9 @@ export function useKonamiCode({ enabled, onActivate }: UseKonamiCodeOptions): vo
       const target = event.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.tagName === 'SELECT' ||
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
           target.isContentEditable)
       ) {
         return;
@@ -53,7 +56,7 @@ export function useKonamiCode({ enabled, onActivate }: UseKonamiCodeOptions): vo
       sequenceIndex.current = key === KONAMI_SEQUENCE[0] ? 1 : 0;
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [enabled, onActivate]);
 }

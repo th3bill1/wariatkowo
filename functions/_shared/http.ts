@@ -1,4 +1,8 @@
-import type { ApiErrorCode, ApiErrorResponse, ApiSuccessResponse } from '../../shared/api';
+import type {
+  ApiErrorCode,
+  ApiErrorResponse,
+  ApiSuccessResponse,
+} from "../../shared/api";
 
 export interface Env {
   DB: D1Database;
@@ -6,7 +10,7 @@ export interface Env {
 
 function jsonHeaders(): HeadersInit {
   return {
-    'Content-Type': 'application/json; charset=utf-8',
+    "Content-Type": "application/json; charset=utf-8",
   };
 }
 
@@ -21,7 +25,11 @@ export function success<T>(data: T, init?: ResponseInit): Response {
   });
 }
 
-export function error(code: ApiErrorCode, message: string, status = 400): Response {
+export function error(
+  code: ApiErrorCode,
+  message: string,
+  status = 400,
+): Response {
   const body: ApiErrorResponse = {
     error: {
       code,
@@ -36,14 +44,14 @@ export function error(code: ApiErrorCode, message: string, status = 400): Respon
 }
 
 export function methodNotAllowed(allowedMethods: string[]): Response {
-  return error('METHOD_NOT_ALLOWED', 'Metoda nie jest obsługiwana.', 405);
+  return error("METHOD_NOT_ALLOWED", "Metoda nie jest obsługiwana.", 405);
 }
 
 export async function readJsonBody(request: Request): Promise<unknown> {
   try {
     return await request.json();
   } catch {
-    throw new Error('INVALID_JSON');
+    throw new Error("INVALID_JSON");
   }
 }
 
@@ -52,7 +60,7 @@ export function nowIso(): string {
 }
 
 export function parseTrimmedString(value: unknown): string {
-  return typeof value === 'string' ? value.trim() : '';
+  return typeof value === "string" ? value.trim() : "";
 }
 
 export function parseOptionalString(value: unknown): string | null | undefined {
@@ -64,11 +72,11 @@ export function parseOptionalString(value: unknown): string | null | undefined {
     return null;
   }
 
-  return typeof value === 'string' ? value.trim() : undefined;
+  return typeof value === "string" ? value.trim() : undefined;
 }
 
 export function parseOptionalBoolean(value: unknown): boolean | undefined {
-  if (typeof value === 'boolean') {
+  if (typeof value === "boolean") {
     return value;
   }
 
@@ -76,14 +84,16 @@ export function parseOptionalBoolean(value: unknown): boolean | undefined {
 }
 
 export function parseOptionalNumber(value: unknown): number | undefined {
-  if (typeof value === 'number' && Number.isFinite(value)) {
+  if (typeof value === "number" && Number.isFinite(value)) {
     return value;
   }
 
   return undefined;
 }
 
-export function parseOptionalIsoDate(value: unknown): string | null | undefined {
+export function parseOptionalIsoDate(
+  value: unknown,
+): string | null | undefined {
   if (value === undefined) {
     return undefined;
   }
@@ -92,7 +102,7 @@ export function parseOptionalIsoDate(value: unknown): string | null | undefined 
     return null;
   }
 
-  if (typeof value !== 'string') {
+  if (typeof value !== "string") {
     return undefined;
   }
 

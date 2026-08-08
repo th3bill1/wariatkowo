@@ -1,10 +1,11 @@
 var __defProp = Object.defineProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __name = (target, value) =>
+  __defProp(target, "name", { value, configurable: true });
 
 // _shared/http.ts
 function jsonHeaders() {
   return {
-    "Content-Type": "application/json; charset=utf-8"
+    "Content-Type": "application/json; charset=utf-8",
   };
 }
 __name(jsonHeaders, "jsonHeaders");
@@ -14,8 +15,8 @@ function success(data, init) {
     ...init,
     headers: {
       ...jsonHeaders(),
-      ...init?.headers ?? {}
-    }
+      ...(init?.headers ?? {}),
+    },
   });
 }
 __name(success, "success");
@@ -23,12 +24,12 @@ function error(code, message, status = 400) {
   const body = {
     error: {
       code,
-      message
-    }
+      message,
+    },
   };
   return new Response(JSON.stringify(body), {
     status,
-    headers: jsonHeaders()
+    headers: jsonHeaders(),
   });
 }
 __name(error, "error");
@@ -45,7 +46,7 @@ async function readJsonBody(request) {
 }
 __name(readJsonBody, "readJsonBody");
 function nowIso() {
-  return (/* @__PURE__ */ new Date()).toISOString();
+  return /* @__PURE__ */ new Date().toISOString();
 }
 __name(nowIso, "nowIso");
 function parseTrimmedString(value) {
@@ -100,7 +101,9 @@ async function onRequest(context) {
   if (context.request.method !== "DELETE") {
     return methodNotAllowed(["DELETE"]);
   }
-  await context.env.DB.prepare("DELETE FROM shopping_items WHERE is_checked = 1").run();
+  await context.env.DB.prepare(
+    "DELETE FROM shopping_items WHERE is_checked = 1",
+  ).run();
   return success({ deleted: true });
 }
 __name(onRequest, "onRequest");
@@ -116,7 +119,7 @@ function toShoppingItem(row) {
     checkedAt: row.checked_at,
     sortOrder: row.sort_order,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
   };
 }
 __name(toShoppingItem, "toShoppingItem");
@@ -129,8 +132,10 @@ async function loadItem(env, id) {
   return env.DB.prepare(
     `SELECT id, name, quantity, category, is_checked, checked_at, sort_order, created_at, updated_at
      FROM shopping_items
-     WHERE id = ?`
-  ).bind(id).first();
+     WHERE id = ?`,
+  )
+    .bind(id)
+    .first();
 }
 __name(loadItem, "loadItem");
 async function updateItem(env, id, body) {
@@ -139,29 +144,57 @@ async function updateItem(env, id, body) {
     return error("NOT_FOUND", "Pozycja zakup\xF3w nie istnieje.", 404);
   }
   const input = body;
-  const nextName = input.name === void 0 ? current.name : parseTrimmedString(input.name);
-  const nextQuantity = input.quantity === void 0 ? current.quantity : parseOptionalString(input.quantity);
-  const nextCategory = input.category === void 0 ? current.category : parseOptionalString(input.category);
-  const nextChecked = input.checked === void 0 ? current.is_checked === 1 : Boolean(input.checked);
-  const nextSortOrder = input.sortOrder === void 0 ? current.sort_order : parseOptionalNumber(input.sortOrder);
+  const nextName =
+    input.name === void 0 ? current.name : parseTrimmedString(input.name);
+  const nextQuantity =
+    input.quantity === void 0
+      ? current.quantity
+      : parseOptionalString(input.quantity);
+  const nextCategory =
+    input.category === void 0
+      ? current.category
+      : parseOptionalString(input.category);
+  const nextChecked =
+    input.checked === void 0
+      ? current.is_checked === 1
+      : Boolean(input.checked);
+  const nextSortOrder =
+    input.sortOrder === void 0
+      ? current.sort_order
+      : parseOptionalNumber(input.sortOrder);
   if (!isNonEmptyString(nextName)) {
     return error("VALIDATION_ERROR", "Nazwa produktu jest wymagana.");
   }
   if (nextName.length > MAX_NAME_LENGTH) {
     return error("VALIDATION_ERROR", "Nazwa produktu jest za d\u0142uga.");
   }
-  if (nextQuantity !== void 0 && nextQuantity !== null && nextQuantity.length > MAX_QUANTITY_LENGTH) {
+  if (
+    nextQuantity !== void 0 &&
+    nextQuantity !== null &&
+    nextQuantity.length > MAX_QUANTITY_LENGTH
+  ) {
     return error("VALIDATION_ERROR", "Ilo\u015B\u0107 jest za d\u0142uga.");
   }
-  if (nextCategory !== void 0 && nextCategory !== null && nextCategory.length > MAX_CATEGORY_LENGTH) {
+  if (
+    nextCategory !== void 0 &&
+    nextCategory !== null &&
+    nextCategory.length > MAX_CATEGORY_LENGTH
+  ) {
     return error("VALIDATION_ERROR", "Kategoria jest za d\u0142uga.");
   }
   if (input.sortOrder !== void 0 && nextSortOrder === void 0) {
-    return error("VALIDATION_ERROR", "Kolejno\u015B\u0107 musi by\u0107 liczb\u0105.");
+    return error(
+      "VALIDATION_ERROR",
+      "Kolejno\u015B\u0107 musi by\u0107 liczb\u0105.",
+    );
   }
   const changedToChecked = current.is_checked === 0 && nextChecked;
   const changedToUnchecked = current.is_checked === 1 && !nextChecked;
-  const nextCheckedAt = changedToChecked ? nowIso() : changedToUnchecked ? null : current.checked_at;
+  const nextCheckedAt = changedToChecked
+    ? nowIso()
+    : changedToUnchecked
+      ? null
+      : current.checked_at;
   const timestamp = nowIso();
   await env.DB.prepare(
     `UPDATE shopping_items
@@ -172,20 +205,26 @@ async function updateItem(env, id, body) {
          checked_at = ?,
          sort_order = ?,
          updated_at = ?
-     WHERE id = ?`
-  ).bind(
-    nextName,
-    nextQuantity ?? null,
-    nextCategory ?? null,
-    nextChecked ? 1 : 0,
-    nextCheckedAt,
-    nextSortOrder ?? current.sort_order,
-    timestamp,
-    id
-  ).run();
+     WHERE id = ?`,
+  )
+    .bind(
+      nextName,
+      nextQuantity ?? null,
+      nextCategory ?? null,
+      nextChecked ? 1 : 0,
+      nextCheckedAt,
+      nextSortOrder ?? current.sort_order,
+      timestamp,
+      id,
+    )
+    .run();
   const updated = await loadItem(env, id);
   if (!updated) {
-    return error("INTERNAL_ERROR", "Nie uda\u0142o si\u0119 zaktualizowa\u0107 pozycji zakup\xF3w.", 500);
+    return error(
+      "INTERNAL_ERROR",
+      "Nie uda\u0142o si\u0119 zaktualizowa\u0107 pozycji zakup\xF3w.",
+      500,
+    );
   }
   return success(toShoppingItem(updated));
 }
@@ -200,7 +239,10 @@ async function onRequest2(context) {
       const body = await readJsonBody(context.request);
       return await updateItem(context.env, id, body);
     } catch {
-      return error("VALIDATION_ERROR", "Tre\u015B\u0107 \u017C\u0105dania nie jest poprawnym JSON-em.");
+      return error(
+        "VALIDATION_ERROR",
+        "Tre\u015B\u0107 \u017C\u0105dania nie jest poprawnym JSON-em.",
+      );
     }
   }
   if (context.request.method === "DELETE") {
@@ -208,7 +250,9 @@ async function onRequest2(context) {
     if (!existing) {
       return error("NOT_FOUND", "Pozycja zakup\xF3w nie istnieje.", 404);
     }
-    await context.env.DB.prepare("DELETE FROM shopping_items WHERE id = ?").bind(id).run();
+    await context.env.DB.prepare("DELETE FROM shopping_items WHERE id = ?")
+      .bind(id)
+      .run();
     return success({ deleted: true });
   }
   return methodNotAllowed(["PATCH", "DELETE"]);
@@ -226,7 +270,7 @@ function toTask(row) {
     completedAt: row.completed_at,
     sortOrder: row.sort_order,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
   };
 }
 __name(toTask, "toTask");
@@ -238,8 +282,10 @@ async function loadTask(env, id) {
   return env.DB.prepare(
     `SELECT id, title, notes, due_date, is_completed, completed_at, sort_order, created_at, updated_at
      FROM tasks
-     WHERE id = ?`
-  ).bind(id).first();
+     WHERE id = ?`,
+  )
+    .bind(id)
+    .first();
 }
 __name(loadTask, "loadTask");
 async function updateTask(env, id, body) {
@@ -248,29 +294,53 @@ async function updateTask(env, id, body) {
     return error("NOT_FOUND", "Zadanie nie istnieje.", 404);
   }
   const input = body;
-  const nextTitle = input.title === void 0 ? current.title : parseTrimmedString(input.title);
-  const nextNotes = input.notes === void 0 ? current.notes : parseOptionalString(input.notes);
-  const nextDueDate = input.dueDate === void 0 ? current.due_date : parseOptionalIsoDate(input.dueDate);
-  const nextCompleted = input.completed === void 0 ? current.is_completed === 1 : Boolean(input.completed);
-  const nextSortOrder = input.sortOrder === void 0 ? current.sort_order : parseOptionalNumber(input.sortOrder);
+  const nextTitle =
+    input.title === void 0 ? current.title : parseTrimmedString(input.title);
+  const nextNotes =
+    input.notes === void 0 ? current.notes : parseOptionalString(input.notes);
+  const nextDueDate =
+    input.dueDate === void 0
+      ? current.due_date
+      : parseOptionalIsoDate(input.dueDate);
+  const nextCompleted =
+    input.completed === void 0
+      ? current.is_completed === 1
+      : Boolean(input.completed);
+  const nextSortOrder =
+    input.sortOrder === void 0
+      ? current.sort_order
+      : parseOptionalNumber(input.sortOrder);
   if (!isNonEmptyString(nextTitle)) {
     return error("VALIDATION_ERROR", "Nazwa zadania jest wymagana.");
   }
   if (nextTitle.length > MAX_TITLE_LENGTH) {
     return error("VALIDATION_ERROR", "Nazwa zadania jest za d\u0142uga.");
   }
-  if (nextNotes !== void 0 && nextNotes !== null && nextNotes.length > MAX_NOTES_LENGTH) {
+  if (
+    nextNotes !== void 0 &&
+    nextNotes !== null &&
+    nextNotes.length > MAX_NOTES_LENGTH
+  ) {
     return error("VALIDATION_ERROR", "Notatka jest za d\u0142uga.");
   }
   if (input.dueDate !== void 0 && nextDueDate === void 0) {
     return error("VALIDATION_ERROR", "Termin ma niepoprawny format.");
   }
   if (input.sortOrder !== void 0 && nextSortOrder === void 0) {
-    return error("VALIDATION_ERROR", "Kolejno\u015B\u0107 musi by\u0107 liczb\u0105.");
+    return error(
+      "VALIDATION_ERROR",
+      "Kolejno\u015B\u0107 musi by\u0107 liczb\u0105.",
+    );
   }
-  const changedFromIncompleteToComplete = current.is_completed === 0 && nextCompleted;
-  const changedFromCompleteToIncomplete = current.is_completed === 1 && !nextCompleted;
-  const nextCompletedAt = changedFromIncompleteToComplete ? nowIso() : changedFromCompleteToIncomplete ? null : current.completed_at;
+  const changedFromIncompleteToComplete =
+    current.is_completed === 0 && nextCompleted;
+  const changedFromCompleteToIncomplete =
+    current.is_completed === 1 && !nextCompleted;
+  const nextCompletedAt = changedFromIncompleteToComplete
+    ? nowIso()
+    : changedFromCompleteToIncomplete
+      ? null
+      : current.completed_at;
   const timestamp = nowIso();
   await env.DB.prepare(
     `UPDATE tasks
@@ -281,20 +351,26 @@ async function updateTask(env, id, body) {
          completed_at = ?,
          sort_order = ?,
          updated_at = ?
-     WHERE id = ?`
-  ).bind(
-    nextTitle,
-    nextNotes ?? null,
-    nextDueDate ?? null,
-    nextCompleted ? 1 : 0,
-    nextCompletedAt,
-    nextSortOrder ?? current.sort_order,
-    timestamp,
-    id
-  ).run();
+     WHERE id = ?`,
+  )
+    .bind(
+      nextTitle,
+      nextNotes ?? null,
+      nextDueDate ?? null,
+      nextCompleted ? 1 : 0,
+      nextCompletedAt,
+      nextSortOrder ?? current.sort_order,
+      timestamp,
+      id,
+    )
+    .run();
   const updated = await loadTask(env, id);
   if (!updated) {
-    return error("INTERNAL_ERROR", "Nie uda\u0142o si\u0119 zaktualizowa\u0107 zadania.", 500);
+    return error(
+      "INTERNAL_ERROR",
+      "Nie uda\u0142o si\u0119 zaktualizowa\u0107 zadania.",
+      500,
+    );
   }
   return success(toTask(updated));
 }
@@ -309,7 +385,10 @@ async function onRequest3(context) {
       const body = await readJsonBody(context.request);
       return await updateTask(context.env, id, body);
     } catch {
-      return error("VALIDATION_ERROR", "Tre\u015B\u0107 \u017C\u0105dania nie jest poprawnym JSON-em.");
+      return error(
+        "VALIDATION_ERROR",
+        "Tre\u015B\u0107 \u017C\u0105dania nie jest poprawnym JSON-em.",
+      );
     }
   }
   if (context.request.method === "DELETE") {
@@ -317,7 +396,9 @@ async function onRequest3(context) {
     if (!existing) {
       return error("NOT_FOUND", "Zadanie nie istnieje.", 404);
     }
-    await context.env.DB.prepare("DELETE FROM tasks WHERE id = ?").bind(id).run();
+    await context.env.DB.prepare("DELETE FROM tasks WHERE id = ?")
+      .bind(id)
+      .run();
     return success({ deleted: true });
   }
   return methodNotAllowed(["PATCH", "DELETE"]);
@@ -335,7 +416,7 @@ async function getShoppingItems(env) {
      ORDER BY
        is_checked ASC,
        sort_order ASC,
-       created_at ASC`
+       created_at ASC`,
   ).all();
   return result.results.map(toShoppingItem);
 }
@@ -351,27 +432,53 @@ async function createShoppingItem(env, body) {
   if (name.length > MAX_NAME_LENGTH2) {
     return error("VALIDATION_ERROR", "Nazwa produktu jest za d\u0142uga.");
   }
-  if (quantity !== void 0 && quantity !== null && quantity.length > MAX_QUANTITY_LENGTH2) {
+  if (
+    quantity !== void 0 &&
+    quantity !== null &&
+    quantity.length > MAX_QUANTITY_LENGTH2
+  ) {
     return error("VALIDATION_ERROR", "Ilo\u015B\u0107 jest za d\u0142uga.");
   }
-  if (category !== void 0 && category !== null && category.length > MAX_CATEGORY_LENGTH2) {
+  if (
+    category !== void 0 &&
+    category !== null &&
+    category.length > MAX_CATEGORY_LENGTH2
+  ) {
     return error("VALIDATION_ERROR", "Kategoria jest za d\u0142uga.");
   }
-  const maxSort = await env.DB.prepare("SELECT COALESCE(MAX(sort_order), -1) AS max_sort_order FROM shopping_items").first();
+  const maxSort = await env.DB.prepare(
+    "SELECT COALESCE(MAX(sort_order), -1) AS max_sort_order FROM shopping_items",
+  ).first();
   const id = crypto.randomUUID();
   const timestamp = nowIso();
   const sortOrder = (maxSort?.max_sort_order ?? -1) + 1;
   await env.DB.prepare(
     `INSERT INTO shopping_items (id, name, quantity, category, is_checked, checked_at, sort_order, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 0, NULL, ?, ?, ?)`
-  ).bind(id, name, quantity ?? null, category ?? null, sortOrder, timestamp, timestamp).run();
+     VALUES (?, ?, ?, ?, 0, NULL, ?, ?, ?)`,
+  )
+    .bind(
+      id,
+      name,
+      quantity ?? null,
+      category ?? null,
+      sortOrder,
+      timestamp,
+      timestamp,
+    )
+    .run();
   const created = await env.DB.prepare(
     `SELECT id, name, quantity, category, is_checked, checked_at, sort_order, created_at, updated_at
      FROM shopping_items
-     WHERE id = ?`
-  ).bind(id).first();
+     WHERE id = ?`,
+  )
+    .bind(id)
+    .first();
   if (!created) {
-    return error("INTERNAL_ERROR", "Nie uda\u0142o si\u0119 utworzy\u0107 pozycji zakup\xF3w.", 500);
+    return error(
+      "INTERNAL_ERROR",
+      "Nie uda\u0142o si\u0119 utworzy\u0107 pozycji zakup\xF3w.",
+      500,
+    );
   }
   return success(toShoppingItem(created), { status: 201 });
 }
@@ -386,7 +493,10 @@ async function onRequest4(context) {
       const body = await readJsonBody(context.request);
       return await createShoppingItem(context.env, body);
     } catch {
-      return error("VALIDATION_ERROR", "Tre\u015B\u0107 \u017C\u0105dania nie jest poprawnym JSON-em.");
+      return error(
+        "VALIDATION_ERROR",
+        "Tre\u015B\u0107 \u017C\u0105dania nie jest poprawnym JSON-em.",
+      );
     }
   }
   return methodNotAllowed(["GET", "POST"]);
@@ -405,7 +515,7 @@ async function getTasks(env) {
        CASE WHEN due_date IS NULL THEN 1 ELSE 0 END ASC,
        due_date ASC,
        sort_order ASC,
-       created_at ASC`
+       created_at ASC`,
   ).all();
   return result.results.map(toTask);
 }
@@ -427,21 +537,39 @@ async function createTask(env, body) {
   if (input.dueDate !== void 0 && dueDate === void 0) {
     return error("VALIDATION_ERROR", "Termin ma niepoprawny format.");
   }
-  const maxSort = await env.DB.prepare("SELECT COALESCE(MAX(sort_order), -1) AS max_sort_order FROM tasks").first();
+  const maxSort = await env.DB.prepare(
+    "SELECT COALESCE(MAX(sort_order), -1) AS max_sort_order FROM tasks",
+  ).first();
   const id = crypto.randomUUID();
   const timestamp = nowIso();
   const sortOrder = (maxSort?.max_sort_order ?? -1) + 1;
   await env.DB.prepare(
     `INSERT INTO tasks (id, title, notes, due_date, is_completed, completed_at, sort_order, created_at, updated_at)
-     VALUES (?, ?, ?, ?, 0, NULL, ?, ?, ?)`
-  ).bind(id, title, notes ?? null, dueDate ?? null, sortOrder, timestamp, timestamp).run();
+     VALUES (?, ?, ?, ?, 0, NULL, ?, ?, ?)`,
+  )
+    .bind(
+      id,
+      title,
+      notes ?? null,
+      dueDate ?? null,
+      sortOrder,
+      timestamp,
+      timestamp,
+    )
+    .run();
   const created = await env.DB.prepare(
     `SELECT id, title, notes, due_date, is_completed, completed_at, sort_order, created_at, updated_at
      FROM tasks
-     WHERE id = ?`
-  ).bind(id).first();
+     WHERE id = ?`,
+  )
+    .bind(id)
+    .first();
   if (!created) {
-    return error("INTERNAL_ERROR", "Nie uda\u0142o si\u0119 utworzy\u0107 zadania.", 500);
+    return error(
+      "INTERNAL_ERROR",
+      "Nie uda\u0142o si\u0119 utworzy\u0107 zadania.",
+      500,
+    );
   }
   return success(toTask(created), { status: 201 });
 }
@@ -456,7 +584,10 @@ async function onRequest5(context) {
       const body = await readJsonBody(context.request);
       return await createTask(context.env, body);
     } catch {
-      return error("VALIDATION_ERROR", "Tre\u015B\u0107 \u017C\u0105dania nie jest poprawnym JSON-em.");
+      return error(
+        "VALIDATION_ERROR",
+        "Tre\u015B\u0107 \u017C\u0105dania nie jest poprawnym JSON-em.",
+      );
     }
   }
   return methodNotAllowed(["GET", "POST"]);
@@ -470,36 +601,36 @@ var routes = [
     mountPath: "/api/shopping",
     method: "",
     middlewares: [],
-    modules: [onRequest]
+    modules: [onRequest],
   },
   {
     routePath: "/api/shopping/:id",
     mountPath: "/api/shopping",
     method: "",
     middlewares: [],
-    modules: [onRequest2]
+    modules: [onRequest2],
   },
   {
     routePath: "/api/tasks/:id",
     mountPath: "/api/tasks",
     method: "",
     middlewares: [],
-    modules: [onRequest3]
+    modules: [onRequest3],
   },
   {
     routePath: "/api/shopping",
     mountPath: "/api/shopping",
     method: "",
     middlewares: [],
-    modules: [onRequest4]
+    modules: [onRequest4],
   },
   {
     routePath: "/api/tasks",
     mountPath: "/api/tasks",
     method: "",
     middlewares: [],
-    modules: [onRequest5]
-  }
+    modules: [onRequest5],
+  },
 ];
 
 // ../node_modules/path-to-regexp/dist.es2015/index.js
@@ -531,9 +662,9 @@ function lexer(str) {
         var code = str.charCodeAt(j);
         if (
           // `0-9`
-          code >= 48 && code <= 57 || // `A-Z`
-          code >= 65 && code <= 90 || // `a-z`
-          code >= 97 && code <= 122 || // `_`
+          (code >= 48 && code <= 57) || // `A-Z`
+          (code >= 65 && code <= 90) || // `a-z`
+          (code >= 97 && code <= 122) || // `_`
           code === 95
         ) {
           name += str[j++];
@@ -541,8 +672,7 @@ function lexer(str) {
         }
         break;
       }
-      if (!name)
-        throw new TypeError("Missing parameter name at ".concat(i));
+      if (!name) throw new TypeError("Missing parameter name at ".concat(i));
       tokens.push({ type: "NAME", index: i, value: name });
       i = j;
       continue;
@@ -568,15 +698,15 @@ function lexer(str) {
         } else if (str[j] === "(") {
           count++;
           if (str[j + 1] !== "?") {
-            throw new TypeError("Capturing groups are not allowed at ".concat(j));
+            throw new TypeError(
+              "Capturing groups are not allowed at ".concat(j),
+            );
           }
         }
         pattern += str[j++];
       }
-      if (count)
-        throw new TypeError("Unbalanced pattern at ".concat(i));
-      if (!pattern)
-        throw new TypeError("Missing pattern at ".concat(i));
+      if (count) throw new TypeError("Unbalanced pattern at ".concat(i));
+      if (!pattern) throw new TypeError("Missing pattern at ".concat(i));
       tokens.push({ type: "PATTERN", index: i, value: pattern });
       i = j;
       continue;
@@ -592,47 +722,61 @@ function parse(str, options) {
     options = {};
   }
   var tokens = lexer(str);
-  var _a = options.prefixes, prefixes = _a === void 0 ? "./" : _a, _b = options.delimiter, delimiter = _b === void 0 ? "/#?" : _b;
+  var _a = options.prefixes,
+    prefixes = _a === void 0 ? "./" : _a,
+    _b = options.delimiter,
+    delimiter = _b === void 0 ? "/#?" : _b;
   var result = [];
   var key = 0;
   var i = 0;
   var path = "";
-  var tryConsume = /* @__PURE__ */ __name(function(type) {
-    if (i < tokens.length && tokens[i].type === type)
-      return tokens[i++].value;
+  var tryConsume = /* @__PURE__ */ __name(function (type) {
+    if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
   }, "tryConsume");
-  var mustConsume = /* @__PURE__ */ __name(function(type) {
+  var mustConsume = /* @__PURE__ */ __name(function (type) {
     var value2 = tryConsume(type);
-    if (value2 !== void 0)
-      return value2;
-    var _a2 = tokens[i], nextType = _a2.type, index = _a2.index;
-    throw new TypeError("Unexpected ".concat(nextType, " at ").concat(index, ", expected ").concat(type));
+    if (value2 !== void 0) return value2;
+    var _a2 = tokens[i],
+      nextType = _a2.type,
+      index = _a2.index;
+    throw new TypeError(
+      "Unexpected "
+        .concat(nextType, " at ")
+        .concat(index, ", expected ")
+        .concat(type),
+    );
   }, "mustConsume");
-  var consumeText = /* @__PURE__ */ __name(function() {
+  var consumeText = /* @__PURE__ */ __name(function () {
     var result2 = "";
     var value2;
-    while (value2 = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR")) {
+    while ((value2 = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR"))) {
       result2 += value2;
     }
     return result2;
   }, "consumeText");
-  var isSafe = /* @__PURE__ */ __name(function(value2) {
+  var isSafe = /* @__PURE__ */ __name(function (value2) {
     for (var _i = 0, delimiter_1 = delimiter; _i < delimiter_1.length; _i++) {
       var char2 = delimiter_1[_i];
-      if (value2.indexOf(char2) > -1)
-        return true;
+      if (value2.indexOf(char2) > -1) return true;
     }
     return false;
   }, "isSafe");
-  var safePattern = /* @__PURE__ */ __name(function(prefix2) {
+  var safePattern = /* @__PURE__ */ __name(function (prefix2) {
     var prev = result[result.length - 1];
     var prevText = prefix2 || (prev && typeof prev === "string" ? prev : "");
     if (prev && !prevText) {
-      throw new TypeError('Must have text between two parameters, missing text after "'.concat(prev.name, '"'));
+      throw new TypeError(
+        'Must have text between two parameters, missing text after "'.concat(
+          prev.name,
+          '"',
+        ),
+      );
     }
     if (!prevText || isSafe(prevText))
       return "[^".concat(escapeString(delimiter), "]+?");
-    return "(?:(?!".concat(escapeString(prevText), ")[^").concat(escapeString(delimiter), "])+?");
+    return "(?:(?!"
+      .concat(escapeString(prevText), ")[^")
+      .concat(escapeString(delimiter), "])+?");
   }, "safePattern");
   while (i < tokens.length) {
     var char = tryConsume("CHAR");
@@ -653,7 +797,7 @@ function parse(str, options) {
         prefix,
         suffix: "",
         pattern: pattern || safePattern(prefix),
-        modifier: tryConsume("MODIFIER") || ""
+        modifier: tryConsume("MODIFIER") || "",
       });
       continue;
     }
@@ -678,7 +822,7 @@ function parse(str, options) {
         pattern: name_1 && !pattern_1 ? safePattern(prefix) : pattern_1,
         prefix,
         suffix,
-        modifier: tryConsume("MODIFIER") || ""
+        modifier: tryConsume("MODIFIER") || "",
       });
       continue;
     }
@@ -697,23 +841,28 @@ function regexpToFunction(re, keys, options) {
   if (options === void 0) {
     options = {};
   }
-  var _a = options.decode, decode = _a === void 0 ? function(x) {
-    return x;
-  } : _a;
-  return function(pathname) {
+  var _a = options.decode,
+    decode =
+      _a === void 0
+        ? function (x) {
+            return x;
+          }
+        : _a;
+  return function (pathname) {
     var m = re.exec(pathname);
-    if (!m)
-      return false;
-    var path = m[0], index = m.index;
+    if (!m) return false;
+    var path = m[0],
+      index = m.index;
     var params = /* @__PURE__ */ Object.create(null);
-    var _loop_1 = /* @__PURE__ */ __name(function(i2) {
-      if (m[i2] === void 0)
-        return "continue";
+    var _loop_1 = /* @__PURE__ */ __name(function (i2) {
+      if (m[i2] === void 0) return "continue";
       var key = keys[i2 - 1];
       if (key.modifier === "*" || key.modifier === "+") {
-        params[key.name] = m[i2].split(key.prefix + key.suffix).map(function(value) {
-          return decode(value, key);
-        });
+        params[key.name] = m[i2]
+          .split(key.prefix + key.suffix)
+          .map(function (value) {
+            return decode(value, key);
+          });
       } else {
         params[key.name] = decode(m[i2], key);
       }
@@ -734,8 +883,7 @@ function flags(options) {
 }
 __name(flags, "flags");
 function regexpToRegexp(path, keys) {
-  if (!keys)
-    return path;
+  if (!keys) return path;
   var groupsRegex = /\((?:\?<(.*?)>)?(?!\?)/g;
   var index = 0;
   var execResult = groupsRegex.exec(path.source);
@@ -746,7 +894,7 @@ function regexpToRegexp(path, keys) {
       prefix: "",
       suffix: "",
       modifier: "",
-      pattern: ""
+      pattern: "",
     });
     execResult = groupsRegex.exec(path.source);
   }
@@ -754,7 +902,7 @@ function regexpToRegexp(path, keys) {
 }
 __name(regexpToRegexp, "regexpToRegexp");
 function arrayToRegexp(paths, keys, options) {
-  var parts = paths.map(function(path) {
+  var parts = paths.map(function (path) {
     return pathToRegexp(path, keys, options).source;
   });
   return new RegExp("(?:".concat(parts.join("|"), ")"), flags(options));
@@ -768,9 +916,23 @@ function tokensToRegexp(tokens, keys, options) {
   if (options === void 0) {
     options = {};
   }
-  var _a = options.strict, strict = _a === void 0 ? false : _a, _b = options.start, start = _b === void 0 ? true : _b, _c = options.end, end = _c === void 0 ? true : _c, _d = options.encode, encode = _d === void 0 ? function(x) {
-    return x;
-  } : _d, _e = options.delimiter, delimiter = _e === void 0 ? "/#?" : _e, _f = options.endsWith, endsWith = _f === void 0 ? "" : _f;
+  var _a = options.strict,
+    strict = _a === void 0 ? false : _a,
+    _b = options.start,
+    start = _b === void 0 ? true : _b,
+    _c = options.end,
+    end = _c === void 0 ? true : _c,
+    _d = options.encode,
+    encode =
+      _d === void 0
+        ? function (x) {
+            return x;
+          }
+        : _d,
+    _e = options.delimiter,
+    delimiter = _e === void 0 ? "/#?" : _e,
+    _f = options.endsWith,
+    endsWith = _f === void 0 ? "" : _f;
   var endsWithRe = "[".concat(escapeString(endsWith), "]|$");
   var delimiterRe = "[".concat(escapeString(delimiter), "]");
   var route = start ? "^" : "";
@@ -782,33 +944,53 @@ function tokensToRegexp(tokens, keys, options) {
       var prefix = escapeString(encode(token.prefix));
       var suffix = escapeString(encode(token.suffix));
       if (token.pattern) {
-        if (keys)
-          keys.push(token);
+        if (keys) keys.push(token);
         if (prefix || suffix) {
           if (token.modifier === "+" || token.modifier === "*") {
             var mod = token.modifier === "*" ? "?" : "";
-            route += "(?:".concat(prefix, "((?:").concat(token.pattern, ")(?:").concat(suffix).concat(prefix, "(?:").concat(token.pattern, "))*)").concat(suffix, ")").concat(mod);
+            route += "(?:"
+              .concat(prefix, "((?:")
+              .concat(token.pattern, ")(?:")
+              .concat(suffix)
+              .concat(prefix, "(?:")
+              .concat(token.pattern, "))*)")
+              .concat(suffix, ")")
+              .concat(mod);
           } else {
-            route += "(?:".concat(prefix, "(").concat(token.pattern, ")").concat(suffix, ")").concat(token.modifier);
+            route += "(?:"
+              .concat(prefix, "(")
+              .concat(token.pattern, ")")
+              .concat(suffix, ")")
+              .concat(token.modifier);
           }
         } else {
           if (token.modifier === "+" || token.modifier === "*") {
-            throw new TypeError('Can not repeat "'.concat(token.name, '" without a prefix and suffix'));
+            throw new TypeError(
+              'Can not repeat "'.concat(
+                token.name,
+                '" without a prefix and suffix',
+              ),
+            );
           }
           route += "(".concat(token.pattern, ")").concat(token.modifier);
         }
       } else {
-        route += "(?:".concat(prefix).concat(suffix, ")").concat(token.modifier);
+        route += "(?:"
+          .concat(prefix)
+          .concat(suffix, ")")
+          .concat(token.modifier);
       }
     }
   }
   if (end) {
-    if (!strict)
-      route += "".concat(delimiterRe, "?");
+    if (!strict) route += "".concat(delimiterRe, "?");
     route += !options.endsWith ? "$" : "(?=".concat(endsWithRe, ")");
   } else {
     var endToken = tokens[tokens.length - 1];
-    var isEndDelimited = typeof endToken === "string" ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1 : endToken === void 0;
+    var isEndDelimited =
+      typeof endToken === "string"
+        ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1
+        : endToken === void 0;
     if (!strict) {
       route += "(?:".concat(delimiterRe, "(?=").concat(endsWithRe, "))?");
     }
@@ -820,10 +1002,8 @@ function tokensToRegexp(tokens, keys, options) {
 }
 __name(tokensToRegexp, "tokensToRegexp");
 function pathToRegexp(path, keys, options) {
-  if (path instanceof RegExp)
-    return regexpToRegexp(path, keys);
-  if (Array.isArray(path))
-    return arrayToRegexp(path, keys, options);
+  if (path instanceof RegExp) return regexpToRegexp(path, keys);
+  if (Array.isArray(path)) return arrayToRegexp(path, keys, options);
   return stringToRegexp(path, keys, options);
 }
 __name(pathToRegexp, "pathToRegexp");
@@ -837,10 +1017,10 @@ function* executeRequest(request) {
       continue;
     }
     const routeMatcher = match(route.routePath.replace(escapeRegex, "\\$&"), {
-      end: false
+      end: false,
     });
     const mountMatcher = match(route.mountPath.replace(escapeRegex, "\\$&"), {
-      end: false
+      end: false,
     });
     const matchResult = routeMatcher(requestPath);
     const mountMatchResult = mountMatcher(requestPath);
@@ -849,7 +1029,7 @@ function* executeRequest(request) {
         yield {
           handler,
           params: matchResult.params,
-          path: mountMatchResult.path
+          path: mountMatchResult.path,
         };
       }
     }
@@ -859,10 +1039,10 @@ function* executeRequest(request) {
       continue;
     }
     const routeMatcher = match(route.routePath.replace(escapeRegex, "\\$&"), {
-      end: true
+      end: true,
     });
     const mountMatcher = match(route.mountPath.replace(escapeRegex, "\\$&"), {
-      end: false
+      end: false,
     });
     const matchResult = routeMatcher(requestPath);
     const mountMatchResult = mountMatcher(requestPath);
@@ -871,7 +1051,7 @@ function* executeRequest(request) {
         yield {
           handler,
           params: matchResult.params,
-          path: matchResult.path
+          path: matchResult.path,
         };
       }
       break;
@@ -914,7 +1094,7 @@ var pages_template_worker_default = {
           waitUntil: workerContext.waitUntil.bind(workerContext),
           passThroughOnException: /* @__PURE__ */ __name(() => {
             isFailOpen = true;
-          }, "passThroughOnException")
+          }, "passThroughOnException"),
         };
         const response = await handler(context);
         if (!(response instanceof Response)) {
@@ -938,15 +1118,15 @@ var pages_template_worker_default = {
       }
       throw error2;
     }
-  }
+  },
 };
-var cloneResponse = /* @__PURE__ */ __name((response) => (
-  // https://fetch.spec.whatwg.org/#null-body-status
-  new Response(
-    [101, 204, 205, 304].includes(response.status) ? null : response.body,
-    response
-  )
-), "cloneResponse");
-export {
-  pages_template_worker_default as default
-};
+var cloneResponse = /* @__PURE__ */ __name(
+  (response) =>
+    // https://fetch.spec.whatwg.org/#null-body-status
+    new Response(
+      [101, 204, 205, 304].includes(response.status) ? null : response.body,
+      response,
+    ),
+  "cloneResponse",
+);
+export { pages_template_worker_default as default };

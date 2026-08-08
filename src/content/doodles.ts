@@ -1,12 +1,13 @@
-export type DoodleVisualKind = 'svg' | 'image';
+export type DoodleVisualKind = "svg" | "image";
 
 export type DoodleVisualConfig =
   | {
-      kind: 'svg';
-      icon: 'coffee' | 'plant' | 'paw' | 'pizza' | 'house' | 'heart' | 'suitcase';
+      kind: "svg";
+      icon:
+        "coffee" | "plant" | "paw" | "pizza" | "house" | "heart" | "suitcase";
     }
   | {
-      kind: 'image';
+      kind: "image";
       src: string;
       alt: string;
     };
@@ -27,9 +28,9 @@ export type DoodlePlacement = {
 
 export const DOODLES: readonly DoodlePlacement[] = [
   {
-    id: 'coffee',
-    visual: { kind: 'svg', icon: 'coffee' },
-    title: 'Kawa',
+    id: "coffee",
+    visual: { kind: "svg", icon: "coffee" },
+    title: "Kawa",
     depth: 0.35,
     x: 8,
     y: 16,
@@ -39,9 +40,9 @@ export const DOODLES: readonly DoodlePlacement[] = [
     mobileY: 14,
   },
   {
-    id: 'plant',
-    visual: { kind: 'svg', icon: 'plant' },
-    title: 'Roślina',
+    id: "plant",
+    visual: { kind: "svg", icon: "plant" },
+    title: "Roślina",
     depth: 0.22,
     x: 12,
     y: 74,
@@ -51,9 +52,9 @@ export const DOODLES: readonly DoodlePlacement[] = [
     mobileY: 76,
   },
   {
-    id: 'paw',
-    visual: { kind: 'svg', icon: 'paw' },
-    title: 'Pies',
+    id: "paw",
+    visual: { kind: "svg", icon: "paw" },
+    title: "Pies",
     depth: 0.45,
     x: 83,
     y: 14,
@@ -64,9 +65,9 @@ export const DOODLES: readonly DoodlePlacement[] = [
     mobileY: 13,
   },
   {
-    id: 'pizza',
-    visual: { kind: 'svg', icon: 'pizza' },
-    title: 'Pizza',
+    id: "pizza",
+    visual: { kind: "svg", icon: "pizza" },
+    title: "Pizza",
     depth: 0.28,
     x: 88,
     y: 40,
@@ -76,9 +77,9 @@ export const DOODLES: readonly DoodlePlacement[] = [
     mobileY: 42,
   },
   {
-    id: 'house',
-    visual: { kind: 'svg', icon: 'house' },
-    title: 'Domek',
+    id: "house",
+    visual: { kind: "svg", icon: "house" },
+    title: "Domek",
     depth: 0.3,
     x: 77,
     y: 77,
@@ -88,9 +89,9 @@ export const DOODLES: readonly DoodlePlacement[] = [
     mobileY: 78,
   },
   {
-    id: 'heart',
-    visual: { kind: 'svg', icon: 'heart' },
-    title: 'Serce',
+    id: "heart",
+    visual: { kind: "svg", icon: "heart" },
+    title: "Serce",
     depth: 0.18,
     x: 50,
     y: 10,
@@ -98,9 +99,9 @@ export const DOODLES: readonly DoodlePlacement[] = [
     rotate: -6,
   },
   {
-    id: 'suitcase',
-    visual: { kind: 'svg', icon: 'suitcase' },
-    title: 'Walizka',
+    id: "suitcase",
+    visual: { kind: "svg", icon: "suitcase" },
+    title: "Walizka",
     depth: 0.33,
     x: 58,
     y: 82,

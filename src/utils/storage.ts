@@ -1,18 +1,21 @@
-type StorageArea = 'local' | 'session';
+type StorageArea = "local" | "session";
 
 function getStorage(area: StorageArea): Storage | undefined {
-  if (typeof window === 'undefined') {
+  if (typeof window === "undefined") {
     return undefined;
   }
 
   try {
-    return area === 'local' ? window.localStorage : window.sessionStorage;
+    return area === "local" ? window.localStorage : window.sessionStorage;
   } catch {
     return undefined;
   }
 }
 
-export function readStorageValue(key: string, area: StorageArea = 'local'): string | null {
+export function readStorageValue(
+  key: string,
+  area: StorageArea = "local",
+): string | null {
   const storage = getStorage(area);
   if (!storage) {
     return null;
@@ -28,7 +31,7 @@ export function readStorageValue(key: string, area: StorageArea = 'local'): stri
 export function writeStorageValue(
   key: string,
   value: string,
-  area: StorageArea = 'local',
+  area: StorageArea = "local",
 ): void {
   const storage = getStorage(area);
   if (!storage) {
@@ -42,7 +45,10 @@ export function writeStorageValue(
   }
 }
 
-export function removeStorageValue(key: string, area: StorageArea = 'local'): void {
+export function removeStorageValue(
+  key: string,
+  area: StorageArea = "local",
+): void {
   const storage = getStorage(area);
   if (!storage) {
     return;

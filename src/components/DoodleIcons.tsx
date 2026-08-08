@@ -7,4 +7,4 @@ export {
   PawPrint as PawIcon,
   Pizza as PizzaIcon,
   Sprout as PlantIcon,
-} from 'lucide-react';
+} from "lucide-react";

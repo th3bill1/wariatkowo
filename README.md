@@ -14,11 +14,11 @@ Wariatkowo is a private household web app. It starts with a playful welcome scre
 ## Architecture
 
 React
-	↓
+↓
 same-origin `/api/*`
-	↓
+↓
 Cloudflare Pages Functions
-	↓
+↓
 Cloudflare D1
 
 The frontend never talks to D1 directly. All task and shopping data goes through Pages Functions.

@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { CreateTaskInput, Task, UpdateTaskInput } from '../../shared/models';
-import { taskService } from '../services/taskService';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type {
+  CreateTaskInput,
+  Task,
+  UpdateTaskInput,
+} from "../../shared/models";
+import { taskService } from "../services/taskService";
 
-export type TaskLoadState = 'idle' | 'loading' | 'ready' | 'error';
+export type TaskLoadState = "idle" | "loading" | "ready" | "error";
 
 function sortTasks(items: Task[]): Task[] {
   return [...items].sort((first, second) => {
@@ -10,8 +14,12 @@ function sortTasks(items: Task[]): Task[] {
       return Number(first.completed) - Number(second.completed);
     }
 
-    const firstDue = first.dueDate ? Date.parse(first.dueDate) : Number.POSITIVE_INFINITY;
-    const secondDue = second.dueDate ? Date.parse(second.dueDate) : Number.POSITIVE_INFINITY;
+    const firstDue = first.dueDate
+      ? Date.parse(first.dueDate)
+      : Number.POSITIVE_INFINITY;
+    const secondDue = second.dueDate
+      ? Date.parse(second.dueDate)
+      : Number.POSITIVE_INFINITY;
     if (firstDue !== secondDue) {
       return firstDue - secondDue;
     }
@@ -26,20 +34,24 @@ function sortTasks(items: Task[]): Task[] {
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [loadState, setLoadState] = useState<TaskLoadState>('loading');
+  const [loadState, setLoadState] = useState<TaskLoadState>("loading");
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    setLoadState('loading');
+    setLoadState("loading");
     setError(null);
 
     try {
       const data = await taskService.getAll();
       setTasks(sortTasks(data));
-      setLoadState('ready');
+      setLoadState("ready");
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Nie udało się pobrać zadań.');
-      setLoadState('error');
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Nie udało się pobrać zadań.",
+      );
+      setLoadState("error");
     }
   }, []);
 
@@ -53,25 +65,32 @@ export function useTasks() {
     return created;
   }, []);
 
-  const updateTask = useCallback(async (id: string, input: UpdateTaskInput) => {
-    let previous: Task[] = [];
-    setTasks((current) => {
-      previous = current;
-      return current.map((task) => (task.id === id ? { ...task, ...input } : task));
-    });
+  const updateTask = useCallback(
+    async (id: string, input: UpdateTaskInput) => {
+      let previous: Task[] = [];
+      setTasks((current) => {
+        previous = current;
+        return current.map((task) =>
+          task.id === id ? { ...task, ...input } : task,
+        );
+      });
 
-    try {
-      const updated = await taskService.update(id, input);
-      setTasks((current) => sortTasks(current.map((task) => (task.id === id ? updated : task))));
-      if (input.completed === true) {
-        await load();
+      try {
+        const updated = await taskService.update(id, input);
+        setTasks((current) =>
+          sortTasks(current.map((task) => (task.id === id ? updated : task))),
+        );
+        if (input.completed === true) {
+          await load();
+        }
+        return updated;
+      } catch (updateError) {
+        setTasks(previous);
+        throw updateError;
       }
-      return updated;
-    } catch (updateError) {
-      setTasks(previous);
-      throw updateError;
-    }
-  }, [load]);
+    },
+    [load],
+  );
 
   const removeTask = useCallback(async (id: string) => {
     let previous: Task[] = [];

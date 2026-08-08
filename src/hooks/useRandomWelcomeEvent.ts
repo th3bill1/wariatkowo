@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
-import { RANDOM_EVENT_DEFINITIONS, type RandomEventId } from '../content/randomEvents';
-import { STORAGE_KEYS } from '../content/storageKeys';
-import { readStorageValue, writeStorageValue } from '../utils/storage';
-import { usePrefersReducedMotion } from './usePrefersReducedMotion';
+import { useEffect, useState } from "react";
+import {
+  RANDOM_EVENT_DEFINITIONS,
+  type RandomEventId,
+} from "../content/randomEvents";
+import { STORAGE_KEYS } from "../content/storageKeys";
+import { readStorageValue, writeStorageValue } from "../utils/storage";
+import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
 
 function pickRandomEvent(): RandomEventId | null {
   const roll = Math.random();
@@ -27,14 +30,23 @@ export function useRandomWelcomeEvent(): RandomEventId | null {
       return;
     }
 
-    const existingEvent = readStorageValue(STORAGE_KEYS.sessionEvent, 'session');
+    const existingEvent = readStorageValue(
+      STORAGE_KEYS.sessionEvent,
+      "session",
+    );
     if (existingEvent) {
-      setEventId(existingEvent === 'none' ? null : (existingEvent as RandomEventId));
+      setEventId(
+        existingEvent === "none" ? null : (existingEvent as RandomEventId),
+      );
       return;
     }
 
     const nextEvent = pickRandomEvent();
-    writeStorageValue(STORAGE_KEYS.sessionEvent, nextEvent ?? 'none', 'session');
+    writeStorageValue(
+      STORAGE_KEYS.sessionEvent,
+      nextEvent ?? "none",
+      "session",
+    );
     setEventId(nextEvent);
   }, [prefersReducedMotion]);
 

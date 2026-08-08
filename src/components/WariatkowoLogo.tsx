@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { WELCOME_COPY } from '../content/welcome';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { WELCOME_COPY } from "../content/welcome";
 
 type WariatkowoLogoProps = {
   totalChaos: boolean;
@@ -20,11 +20,15 @@ const LETTER_STYLES = [
   { rotate: 5, shiftY: 1, scale: 0.99 },
 ] as const;
 
-export function WariatkowoLogo({ totalChaos, malfunctioning, onActivateChaosMode }: WariatkowoLogoProps) {
+export function WariatkowoLogo({
+  totalChaos,
+  malfunctioning,
+  onActivateChaosMode,
+}: WariatkowoLogoProps) {
   const [clickCount, setClickCount] = useState(0);
   const resetTimerRef = useRef<number | null>(null);
 
-  const letters = useMemo(() => WELCOME_COPY.logo.split(''), []);
+  const letters = useMemo(() => WELCOME_COPY.logo.split(""), []);
 
   useEffect(() => {
     if (clickCount < 5) {
@@ -47,12 +51,12 @@ export function WariatkowoLogo({ totalChaos, malfunctioning, onActivateChaosMode
     <button
       aria-label={WELCOME_COPY.logo}
       className={[
-        'wariatkowo-logo',
-        totalChaos ? 'wariatkowo-logo--chaos' : '',
-        malfunctioning ? 'wariatkowo-logo--malfunctioning' : '',
+        "wariatkowo-logo",
+        totalChaos ? "wariatkowo-logo--chaos" : "",
+        malfunctioning ? "wariatkowo-logo--malfunctioning" : "",
       ]
         .filter(Boolean)
-        .join(' ')}
+        .join(" ")}
       onClick={() => setClickCount((value) => value + 1)}
       type="button"
     >
@@ -65,9 +69,9 @@ export function WariatkowoLogo({ totalChaos, malfunctioning, onActivateChaosMode
             key={`${letter}-${index}`}
             style={
               {
-                '--letter-rotate': `${style.rotate}deg`,
-                '--letter-shift-y': `${style.shiftY}px`,
-                '--letter-scale': `${style.scale}`,
+                "--letter-rotate": `${style.rotate}deg`,
+                "--letter-shift-y": `${style.shiftY}px`,
+                "--letter-scale": `${style.scale}`,
               } as React.CSSProperties
             }
           >

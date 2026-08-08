@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef } from 'react';
-import type { PointerEvent, RefObject } from 'react';
+import { useCallback, useEffect, useRef } from "react";
+import type { PointerEvent, RefObject } from "react";
 
 export function usePointerParallax<T extends HTMLElement>(
   enabled: boolean,
@@ -25,8 +25,8 @@ export function usePointerParallax<T extends HTMLElement>(
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
 
-    container.style.setProperty('--parallax-x', `${x.toFixed(3)}`);
-    container.style.setProperty('--parallax-y', `${y.toFixed(3)}`);
+    container.style.setProperty("--parallax-x", `${x.toFixed(3)}`);
+    container.style.setProperty("--parallax-y", `${y.toFixed(3)}`);
   }, []);
 
   const handlePointerMove = useCallback(
@@ -51,8 +51,8 @@ export function usePointerParallax<T extends HTMLElement>(
       return;
     }
 
-    container.style.setProperty('--parallax-x', '0');
-    container.style.setProperty('--parallax-y', '0');
+    container.style.setProperty("--parallax-x", "0");
+    container.style.setProperty("--parallax-y", "0");
     lastEventRef.current = null;
   }, []);
 

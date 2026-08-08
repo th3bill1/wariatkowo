@@ -5,7 +5,12 @@ type ErrorStateProps = {
   retryLabel?: string;
 };
 
-export function ErrorState({ title, description, onRetry, retryLabel = 'Spróbuj ponownie' }: ErrorStateProps) {
+export function ErrorState({
+  title,
+  description,
+  onRetry,
+  retryLabel = "Spróbuj ponownie",
+}: ErrorStateProps) {
   return (
     <div className="state state--error" role="alert">
       <p className="state__title">{title}</p>

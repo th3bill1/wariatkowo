@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import type { QuizQuestion } from '../../content/quiz/questions';
+import { useState } from "react";
+import type { QuizQuestion } from "../../content/quiz/questions";
 
-type QuestionStage = 'waiting' | 'self-answer' | 'multiple-choice' | 'answered';
+type QuestionStage = "waiting" | "self-answer" | "multiple-choice" | "answered";
 
 type QuestionEvaluation = {
-  status: 'none' | 'correct' | 'incorrect';
+  status: "none" | "correct" | "incorrect";
   selectedAnswerIndex: number | null;
   pointsAwarded: 0 | 1 | 2;
 };
@@ -28,29 +28,35 @@ function getAnswerClassName(params: {
   correctAnswerIndex: number;
 }): string {
   const { index, stage, evaluation, correctAnswerIndex } = params;
-  const classNames = ['quiz-answer'];
+  const classNames = ["quiz-answer"];
 
-  if (stage !== 'multiple-choice' && stage !== 'answered') {
-    return classNames.join(' ');
+  if (stage !== "multiple-choice" && stage !== "answered") {
+    return classNames.join(" ");
   }
 
-  if (evaluation.status !== 'none') {
+  if (evaluation.status !== "none") {
     if (index === correctAnswerIndex) {
-      classNames.push('quiz-answer--correct');
+      classNames.push("quiz-answer--correct");
     }
 
-    if (evaluation.status === 'incorrect' && evaluation.selectedAnswerIndex === index) {
-      classNames.push('quiz-answer--wrong');
+    if (
+      evaluation.status === "incorrect" &&
+      evaluation.selectedAnswerIndex === index
+    ) {
+      classNames.push("quiz-answer--wrong");
     }
 
-    if (evaluation.status === 'correct' && evaluation.selectedAnswerIndex === index) {
-      classNames.push('quiz-answer--selected');
+    if (
+      evaluation.status === "correct" &&
+      evaluation.selectedAnswerIndex === index
+    ) {
+      classNames.push("quiz-answer--selected");
     }
 
-    classNames.push('quiz-answer--locked');
+    classNames.push("quiz-answer--locked");
   }
 
-  return classNames.join(' ');
+  return classNames.join(" ");
 }
 
 export function QuestionCard({
@@ -65,12 +71,24 @@ export function QuestionCard({
   prefersReducedMotion,
 }: QuestionCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
-  const isResolved = stage === 'answered';
+  const isResolved = stage === "answered";
   const correctAnswerText = question.answers[question.correctAnswer];
-  const feedbackCopy = evaluation.status === 'correct' ? `Dobrze! +${evaluation.pointsAwarded} pkt` : evaluation.status === 'incorrect' ? 'Niestety nie.' : '';
+  const feedbackCopy =
+    evaluation.status === "correct"
+      ? `Dobrze! +${evaluation.pointsAwarded} pkt`
+      : evaluation.status === "incorrect"
+        ? "Niestety nie."
+        : "";
 
   return (
-    <section className={['quiz-question', prefersReducedMotion ? 'quiz-question--calm' : ''].filter(Boolean).join(' ')}>
+    <section
+      className={[
+        "quiz-question",
+        prefersReducedMotion ? "quiz-question--calm" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className="quiz-question__media">
         {hasImageError ? (
           <div className="quiz-question__placeholder">
@@ -87,40 +105,68 @@ export function QuestionCard({
       </div>
 
       <div className="quiz-question__body">
-        <p className="quiz-question__label">{isResolved ? 'Odpowiedź sprawdzona' : 'Quiz'}</p>
+        <p className="quiz-question__label">
+          {isResolved ? "Odpowiedź sprawdzona" : "Quiz"}
+        </p>
         <h2 className="quiz-question__title">{question.question}</h2>
 
-        {stage === 'waiting' ? (
+        {stage === "waiting" ? (
           <div className="quiz-choice-grid">
-            <button className="quiz-choice-button quiz-choice-button--primary" type="button" onClick={onChooseSelfAnswer}>
+            <button
+              className="quiz-choice-button quiz-choice-button--primary"
+              type="button"
+              onClick={onChooseSelfAnswer}
+            >
               Wiem bez podpowiedzi
             </button>
-            <button className="quiz-choice-button" type="button" onClick={onChooseMultipleChoice}>
+            <button
+              className="quiz-choice-button"
+              type="button"
+              onClick={onChooseMultipleChoice}
+            >
               Pokaż odpowiedzi
             </button>
           </div>
         ) : null}
 
-        {stage === 'self-answer' ? (
+        {stage === "self-answer" ? (
           <div className="quiz-host-panel">
             <p className="quiz-host-panel__copy">Odpowiedz bez podpowiedzi.</p>
             <div className="quiz-host-panel__actions">
-              <button className="quiz-choice-button quiz-choice-button--primary quiz-choice-button--large" type="button" onClick={() => onEvaluateSelfAnswer(true)}>
+              <button
+                className="quiz-choice-button quiz-choice-button--primary quiz-choice-button--large"
+                type="button"
+                onClick={() => onEvaluateSelfAnswer(true)}
+              >
                 Dobrze +2
               </button>
-              <button className="quiz-choice-button quiz-choice-button--danger quiz-choice-button--large" type="button" onClick={() => onEvaluateSelfAnswer(false)}>
+              <button
+                className="quiz-choice-button quiz-choice-button--danger quiz-choice-button--large"
+                type="button"
+                onClick={() => onEvaluateSelfAnswer(false)}
+              >
                 Źle
               </button>
             </div>
           </div>
         ) : null}
 
-        {stage === 'multiple-choice' || (stage === 'answered' && evaluation.selectedAnswerIndex !== null) ? (
-          <div className="quiz-answers" role="list" aria-label="Możliwe odpowiedzi">
+        {stage === "multiple-choice" ||
+        (stage === "answered" && evaluation.selectedAnswerIndex !== null) ? (
+          <div
+            className="quiz-answers"
+            role="list"
+            aria-label="Możliwe odpowiedzi"
+          >
             {question.answers.map((answer, index) => {
               const isCorrect = index === question.correctAnswer;
               const isSelected = evaluation.selectedAnswerIndex === index;
-              const buttonClassName = getAnswerClassName({ index, stage, evaluation, correctAnswerIndex: question.correctAnswer });
+              const buttonClassName = getAnswerClassName({
+                index,
+                stage,
+                evaluation,
+                correctAnswerIndex: question.correctAnswer,
+              });
 
               return (
                 <button
@@ -128,10 +174,14 @@ export function QuestionCard({
                   className={buttonClassName}
                   type="button"
                   onClick={() => onChooseAnswer(index)}
-                  disabled={stage === 'answered' || evaluation.status !== 'none'}
+                  disabled={
+                    stage === "answered" || evaluation.status !== "none"
+                  }
                   aria-pressed={isSelected}
                 >
-                  <span className="quiz-answer__letter">{String.fromCharCode(65 + index)}.</span>
+                  <span className="quiz-answer__letter">
+                    {String.fromCharCode(65 + index)}.
+                  </span>
                   <span className="quiz-answer__text">{answer}</span>
                 </button>
               );
@@ -139,14 +189,28 @@ export function QuestionCard({
           </div>
         ) : null}
 
-        {stage === 'answered' ? (
+        {stage === "answered" ? (
           <div className="quiz-feedback">
-            <p className={`quiz-feedback__title quiz-feedback__title--${evaluation.status}`}>
+            <p
+              className={`quiz-feedback__title quiz-feedback__title--${evaluation.status}`}
+            >
               {feedbackCopy}
             </p>
-            {evaluation.pointsAwarded > 0 ? <p className="quiz-feedback__points">+{evaluation.pointsAwarded} pkt</p> : null}
-            {evaluation.status === 'incorrect' ? <p className="quiz-feedback__answer">Poprawna odpowiedź: {correctAnswerText}</p> : null}
-            <button className="quiz-next-button" type="button" onClick={onNextQuestion}>
+            {evaluation.pointsAwarded > 0 ? (
+              <p className="quiz-feedback__points">
+                +{evaluation.pointsAwarded} pkt
+              </p>
+            ) : null}
+            {evaluation.status === "incorrect" ? (
+              <p className="quiz-feedback__answer">
+                Poprawna odpowiedź: {correctAnswerText}
+              </p>
+            ) : null}
+            <button
+              className="quiz-next-button"
+              type="button"
+              onClick={onNextQuestion}
+            >
               Następne pytanie
             </button>
           </div>

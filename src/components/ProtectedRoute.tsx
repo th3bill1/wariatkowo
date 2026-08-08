@@ -1,11 +1,19 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { LoadingState } from './ui/LoadingState';
-import { useAuth } from '../auth/AuthContext';
+import { Navigate, useLocation } from "react-router-dom";
+import { LoadingState } from "./ui/LoadingState";
+import { useAuth } from "../auth/AuthContext";
 
-export function ProtectedRoute({children}:{children:JSX.Element}){
- const {member,isLoading}=useAuth();
- const location=useLocation();
- if(isLoading) return <main className="auth-loading"><LoadingState label="Sprawdzamy, kto wrócił do Wariatkowa…" /></main>;
- if(!member) return <Navigate replace state={{from:location.pathname}} to="/logowanie" />;
- return children;
+export function ProtectedRoute({ children }: { children: JSX.Element }) {
+  const { member, isLoading } = useAuth();
+  const location = useLocation();
+  if (isLoading)
+    return (
+      <main className="auth-loading">
+        <LoadingState label="Sprawdzamy, kto wrócił do Wariatkowa…" />
+      </main>
+    );
+  if (!member)
+    return (
+      <Navigate replace state={{ from: location.pathname }} to="/logowanie" />
+    );
+  return children;
 }

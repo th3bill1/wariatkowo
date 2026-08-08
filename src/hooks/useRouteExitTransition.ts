@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
-export function useRouteExitTransition(onComplete: () => void, duration = 420): {
+export function useRouteExitTransition(
+  onComplete: () => void,
+  duration = 420,
+): {
   isExiting: boolean;
   beginExit: () => void;
 } {
