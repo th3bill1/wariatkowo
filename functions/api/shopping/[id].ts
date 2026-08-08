@@ -1,3 +1,4 @@
+import { isAuthResponse, requireAuth } from '../../_shared/auth';
 import type { UpdateShoppingItemInput } from '../../../shared/models';
 import { error, isNonEmptyString, methodNotAllowed, nowIso, parseOptionalNumber, parseOptionalString, parseTrimmedString, readJsonBody, success, type Env } from '../../_shared/http';
 import type { ShoppingRow } from '../../_shared/shopping';
@@ -87,6 +88,8 @@ async function updateItem(env: Env, id: string, body: unknown): Promise<Response
 }
 
 export async function onRequest(context: { request: Request; env: Env; params: { id?: string } }): Promise<Response> {
+  const auth = await requireAuth(context.request, context.env);
+  if (isAuthResponse(auth)) return auth;
   const id = context.params.id;
   if (!id) {
     return error('VALIDATION_ERROR', 'Brak identyfikatora pozycji.');

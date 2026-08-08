@@ -1,3 +1,4 @@
+import { isAuthResponse, requireAuth } from '../../_shared/auth';
 import type { CreateShoppingItemInput, ShoppingItem } from '../../../shared/models';
 import { error, isNonEmptyString, methodNotAllowed, nowIso, parseOptionalString, parseTrimmedString, readJsonBody, success, type Env } from '../../_shared/http';
 import type { ShoppingRow } from '../../_shared/shopping';
@@ -73,6 +74,8 @@ async function createShoppingItem(env: Env, body: unknown): Promise<Response> {
 }
 
 export async function onRequest(context: { request: Request; env: Env }): Promise<Response> {
+  const auth = await requireAuth(context.request, context.env);
+  if (isAuthResponse(auth)) return auth;
   if (context.request.method === 'GET') {
     const items = await getShoppingItems(context.env);
     return success(items);

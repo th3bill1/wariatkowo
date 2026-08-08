@@ -1,6 +1,9 @@
+import { isAuthResponse, requireAuth } from '../../_shared/auth';
 import { methodNotAllowed, success, type Env } from '../../_shared/http';
 
 export async function onRequest(context: { request: Request; env: Env }): Promise<Response> {
+  const auth = await requireAuth(context.request, context.env);
+  if (isAuthResponse(auth)) return auth;
   if (context.request.method !== 'DELETE') {
     return methodNotAllowed(['DELETE']);
   }

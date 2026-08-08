@@ -63,12 +63,15 @@ export function useTasks() {
     try {
       const updated = await taskService.update(id, input);
       setTasks((current) => sortTasks(current.map((task) => (task.id === id ? updated : task))));
+      if (input.completed === true) {
+        await load();
+      }
       return updated;
     } catch (updateError) {
       setTasks(previous);
       throw updateError;
     }
-  }, []);
+  }, [load]);
 
   const removeTask = useCallback(async (id: string) => {
     let previous: Task[] = [];

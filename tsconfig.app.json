@@ -16,6 +16,6 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "shared"],
+  "include": ["src", "shared", "public/profiles/LoginPage.tsx"],
   "references": []
 }

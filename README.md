@@ -110,3 +110,33 @@ Add the D1 binding in the Cloudflare Pages project settings under Functions / D1
 - The API is currently unauthenticated
 - Do not store sensitive household information here until access control is added
 - If no Cloudflare database ID is available locally, keep the migration files and binding steps as the source of truth instead of inventing IDs
+
+## Household authentication and task profiles
+
+Migration `0002_members_tasks_auth.sql` adds stable Misiek and Miśka member records, hashed-PIN fields, D1 sessions, login-attempt throttling, task completion events, task assignment, and recurrence metadata. Existing tasks remain intact and become `anyone` tasks.
+
+Apply migrations locally with `npm run d1:migrate:local` and remotely with `npm run d1:migrate:remote`.
+
+### Initialize or change PINs
+
+No PIN or PIN hash is committed to Git. After applying migrations, set both four-digit PINs in the current PowerShell session:
+
+    $env:WARIATKOWO_MISIEK_PIN='your-four-digits'
+    $env:WARIATKOWO_MISKA_PIN='your-four-digits'
+    npm run setup:pins
+
+For the remote D1 database, use `npm run setup:pins -- --remote`.
+
+Each run generates new random salts and PBKDF2-SHA-256 hashes, updates both members, and revokes their existing sessions. Re-run it whenever either PIN needs to change, then clear the two environment variables.
+
+Sessions last 30 days and use same-origin `HttpOnly`, `Secure`, `SameSite=Lax` cookies. Household task and shopping APIs return `401` without a valid session. Five failed PIN attempts for the same profile/client combination within 15 minutes trigger a temporary rate limit.
+
+### Task behavior
+
+Tasks may be assigned to anyone, Misiek, Miśka, or both members. Completion attribution always comes from the authenticated server session. Completion events preserve the task title and assignment snapshot for statistics.
+
+Recurring tasks require a due date. Completing an occurrence records its history and creates one new occurrence with the next due date. The database link from the completed occurrence to its successor is unique, preventing duplicate successors from repeated completion requests.
+
+### Verification
+
+Run `npm run test`, `npm run build`, and `npm run typecheck:functions`.
