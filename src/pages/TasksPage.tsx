@@ -422,7 +422,7 @@ export function TasksPage() {
       <PageHeader
         eyebrow={"Panel " + member?.name}
         title={TASKS_COPY.heading}
-        description="Sprawy do ogarnięcia — wiadomo, kto, co i kiedy."
+        description="Sprawy do ogarnięcia."
         actions={
           <button
             className="primary-button"
@@ -437,7 +437,7 @@ export function TasksPage() {
         <AppCard>
           <SectionHeader
             title="Nowe zadanie"
-            description="Krótko i bez kombinowania."
+            description="Treść miśkozadania."
           />
           <TaskComposer
             onCancel={() => setComposerOpen(false)}

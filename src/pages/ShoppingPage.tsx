@@ -359,7 +359,7 @@ export function ShoppingPage() {
       <PageHeader
         eyebrow="Lista pod ręką"
         title={SHOPPING_COPY.heading}
-        description="Szybkie dodawanie i wygodne odhaczanie."
+        description="Może o niczym nie zapomnimy"
         actions={
           <button
             className="primary-button"
@@ -373,7 +373,7 @@ export function ShoppingPage() {
 
       <AppCard>
         <SectionHeader
-          title="Szybki dodatek"
+          title="Szybkie dodanie"
           description="Wpisz nazwę i wciśnij Enter."
         />
         <form className="quick-add" onSubmit={handleQuickAdd}>

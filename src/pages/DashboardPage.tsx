@@ -252,7 +252,7 @@ export function DashboardPage() {
         <AppCard className="dashboard-card dashboard-card--status">
           <SectionHeader
             title={DASHBOARD_COPY.statusCardTitle}
-            description="Coś między spokojem a kontrolowanym bałaganem."
+            description="Miśki mocno się kochają."
           />
           <WariatkowoStatus status={status} />
         </AppCard>
