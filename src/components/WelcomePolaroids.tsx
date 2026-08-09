@@ -3,8 +3,10 @@ import { POLAROID_PHOTOS } from "../content/polaroids";
 import { useDesktopOnly } from "../hooks/useDesktopOnly";
 import { usePointerParallax } from "../hooks/usePointerParallax";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
-import { randomRotation, randomUniqueItems } from "../utils/randomSelection";
+import { randomUniqueItems } from "../utils/randomSelection";
 import { PolaroidPhoto } from "./PolaroidPhoto";
+
+const WELCOME_POLAROID_ROTATIONS = [-7, 4.5, -3.5, 6, -5.25, 2.75];
 
 export function WelcomePolaroids({ totalChaos }: { totalChaos: boolean }) {
   const reducedMotion = usePrefersReducedMotion(),
@@ -15,7 +17,7 @@ export function WelcomePolaroids({ totalChaos }: { totalChaos: boolean }) {
   const [photos] = useState(() =>
     randomUniqueItems(POLAROID_PHOTOS, 6).map((photo, index) => ({
       ...photo,
-      rotation: randomRotation(),
+      rotation: WELCOME_POLAROID_ROTATIONS[index],
       depth: 0.25 + (index % 3) * 0.12,
     })),
   );
