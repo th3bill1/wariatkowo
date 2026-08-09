@@ -135,6 +135,87 @@ a:focus-visible {
   border: 1px solid rgba(114, 87, 232, 0.09);
 }
 
+.welcome-page--countdown {
+  align-content: center;
+}
+
+.welcome-countdown {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 44rem);
+  display: grid;
+  justify-items: center;
+  gap: clamp(1rem, 3vw, 1.45rem);
+  padding: clamp(1.2rem, 4vw, 2.2rem);
+  text-align: center;
+}
+
+.welcome-countdown__eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(0.86rem, 1.8vw, 1rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.welcome-countdown h1 {
+  margin: 0;
+  color: var(--text);
+  font-family:
+    "Nunito",
+    "Fredoka",
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-size: clamp(2.5rem, 9vw, 6.2rem);
+  line-height: 0.95;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-shadow: 0 5px 0 rgba(255, 255, 255, 0.52);
+}
+
+.welcome-countdown__grid {
+  width: min(100%, 38rem);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(0.55rem, 1.6vw, 0.9rem);
+}
+
+.welcome-countdown__unit {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+  padding: clamp(0.75rem, 2vw, 1rem) 0.55rem;
+  border: 1px solid rgba(114, 87, 232, 0.13);
+  border-radius: 0.5rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.9),
+      rgba(255, 255, 255, 0.68)
+    ),
+    linear-gradient(135deg, rgba(255, 136, 183, 0.1), rgba(121, 184, 255, 0.1));
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(10px);
+}
+
+.welcome-countdown__unit strong {
+  font-size: clamp(1.8rem, 5vw, 3.1rem);
+  line-height: 1;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.welcome-countdown__unit span {
+  color: var(--muted);
+  font-size: clamp(0.72rem, 1.6vw, 0.86rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .animated-background {
   position: fixed;
   inset: 0;
@@ -1858,6 +1939,10 @@ a:focus-visible {
 
   .welcome-page__footnote span {
     padding-inline: 0.55rem;
+  }
+
+  .welcome-countdown__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .dashboard-page__hero {
