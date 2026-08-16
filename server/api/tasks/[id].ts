@@ -1,4 +1,5 @@
 import type { TaskRecurrence, UpdateTaskInput } from "../../../shared/models";
+import type { DatabaseStatement } from "../../db/types";
 import { isAuthResponse, requireAuth } from "../../_shared/auth";
 import {
   error,
@@ -182,7 +183,7 @@ function contextStatement(
   env: Env,
   sql: string,
   values: unknown[],
-): D1PreparedStatement {
+): DatabaseStatement {
   return env.DB.prepare(sql).bind(...values);
 }
 export async function onRequest(context: {

@@ -1,5 +1,8 @@
 node_modules
 dist
+build
+data/
+tmp/
 coverage
 .vscode/*
 !.vscode/settings.json
@@ -9,7 +12,11 @@ coverage
 .DS_Store
 .env
 .env.*
+!.env.example
 *.log
+*.db
+*.db-shm
+*.db-wal
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts

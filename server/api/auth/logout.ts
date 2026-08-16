@@ -15,6 +15,10 @@ export async function onRequest(context: {
       .run();
   return success(
     { loggedOut: true },
-    { headers: { "Set-Cookie": clearSessionCookie() } },
+    {
+      headers: {
+        "Set-Cookie": clearSessionCookie(context.env.COOKIE_SECURE ?? true),
+      },
+    },
   );
 }

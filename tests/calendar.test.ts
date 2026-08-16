@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isCalendarEventType,
   parseCalendarDate,
-} from "../functions/_shared/calendar";
+} from "../server/_shared/calendar";
 describe("calendar rules", () => {
   it("accepts supported event types", () => {
     expect(isCalendarEventType("birthday")).toBe(true);

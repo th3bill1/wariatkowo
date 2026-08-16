@@ -3,9 +3,11 @@ import type {
   ApiErrorResponse,
   ApiSuccessResponse,
 } from "../../shared/api";
+import type { DatabaseClient } from "../db/types";
 
 export interface Env {
-  DB: D1Database;
+  DB: DatabaseClient;
+  COOKIE_SECURE?: boolean;
 }
 
 function jsonHeaders(): HeadersInit {

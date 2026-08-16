@@ -12,7 +12,6 @@ export const GENERATED_POLAROID_FILES = [
   "haloween_dynia.jpg",
   "kajaki.jpg",
   "krynica_buziak.jpg",
-  "krynica_selfie.jpg",
   "krynica.jpg",
   "kurs_malowania.jpg",
   "lizbona_boba.jpg",

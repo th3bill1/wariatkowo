@@ -130,20 +130,33 @@ export function isAuthResponse(
 ): value is Response {
   return value instanceof Response;
 }
-export function createSessionCookie(token: string, expiresAt: Date): string {
+export function createSessionCookie(
+  token: string,
+  expiresAt: Date,
+  secure = true,
+): string {
   return [
     SESSION_COOKIE + "=" + encodeURIComponent(token),
     "Path=/",
     "HttpOnly",
-    "Secure",
+    secure ? "Secure" : "",
     "SameSite=Lax",
     "Expires=" + expiresAt.toUTCString(),
-  ].join("; ");
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
-export function clearSessionCookie(): string {
-  return (
-    SESSION_COOKIE + "=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0"
-  );
+export function clearSessionCookie(secure = true): string {
+  return [
+    SESSION_COOKIE + "=",
+    "Path=/",
+    "HttpOnly",
+    secure ? "Secure" : "",
+    "SameSite=Lax",
+    "Max-Age=0",
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
 export function createSessionExpiry(): Date {
   const expires = new Date();

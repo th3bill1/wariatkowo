@@ -4,7 +4,7 @@ import {
   createSessionCookie,
   derivePinHash,
   isValidPin,
-} from "../functions/_shared/auth";
+} from "../server/_shared/auth";
 
 describe("household PIN security", () => {
   it("accepts exactly four digits", () => {

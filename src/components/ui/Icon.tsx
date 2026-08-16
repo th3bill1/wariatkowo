@@ -4,10 +4,17 @@ import {
   ShoppingBasket,
   Sparkles,
   CalendarDays,
+  HousePlug,
   type LucideIcon,
 } from "lucide-react";
 
-export type IconName = "home" | "tasks" | "shopping" | "quiz" | "calendar";
+export type IconName =
+  | "home"
+  | "tasks"
+  | "shopping"
+  | "quiz"
+  | "calendar"
+  | "smart-home";
 
 type IconProps = {
   name: IconName;
@@ -20,6 +27,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   shopping: ShoppingBasket,
   quiz: Sparkles,
   calendar: CalendarDays,
+  "smart-home": HousePlug,
 };
 
 export function Icon({ name, className }: IconProps) {

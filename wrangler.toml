@@ -1,8 +1,0 @@
-name = "wariatkowo"
-compatibility_date = "2026-08-07"
-pages_build_output_dir = "dist"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "wariatkowo-db"
-database_id = "62745262-a08c-4a7d-9d77-0728c8f7c1e7"

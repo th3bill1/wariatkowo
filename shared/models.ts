@@ -119,3 +119,64 @@ export type CreateCalendarEventInput = {
   allDay?: boolean;
 };
 export type UpdateCalendarEventInput = Partial<CreateCalendarEventInput>;
+
+export type HomeDeviceState = "on" | "off" | "unavailable" | string;
+export type HomeLight = {
+  id: string;
+  name: string;
+  state: HomeDeviceState;
+  available: boolean;
+  brightness: number | null;
+  rgb: [number, number, number] | null;
+  colorTemperature: number | null;
+  minColorTemperature: number | null;
+  maxColorTemperature: number | null;
+  supportsBrightness: boolean;
+  supportsColor: boolean;
+  supportsColorTemperature: boolean;
+};
+export type HomeClimate = {
+  id: "ac";
+  name: string;
+  state: HomeDeviceState;
+  available: boolean;
+  currentTemperature: number | null;
+  targetTemperature: number | null;
+  minTemperature: number;
+  maxTemperature: number;
+  temperatureStep: number;
+  modes: string[];
+  fanMode: string | null;
+  fanModes: string[];
+  swingMode: string | null;
+  swingModes: string[];
+};
+export type HomeMediaDevice = {
+  id: "tv" | "xbox";
+  name: string;
+  state: HomeDeviceState;
+  available: boolean;
+  volume: number | null;
+  muted: boolean | null;
+  source: string | null;
+  sources: string[];
+  mediaTitle: string | null;
+  supportsVolume: boolean;
+  supportsMute: boolean;
+  supportsSource: boolean;
+  supportsCommands: boolean;
+};
+export type HomeScene = {
+  id: string;
+  name: string;
+};
+export type HomeStatus = {
+  connected: boolean;
+  message: string | null;
+  updatedAt: string;
+  lights: HomeLight[];
+  ac: HomeClimate | null;
+  tv: HomeMediaDevice | null;
+  xbox: HomeMediaDevice | null;
+  scenes: HomeScene[];
+};

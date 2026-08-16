@@ -12,9 +12,7 @@ const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Root element not found");
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter
-      future={{ v7_relativeSplatPath: true, v7_startTransition: true }}
-    >
+    <BrowserRouter>
       <AuthProvider>
         <App />
       </AuthProvider>

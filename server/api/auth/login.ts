@@ -100,6 +100,14 @@ export async function onRequest(context: {
 
   return success(
     { id: member.id, name: member.name, slug: member.slug },
-    { headers: { "Set-Cookie": createSessionCookie(token, expiresAt) } },
+    {
+      headers: {
+        "Set-Cookie": createSessionCookie(
+          token,
+          expiresAt,
+          context.env.COOKIE_SECURE ?? true,
+        ),
+      },
+    },
   );
 }

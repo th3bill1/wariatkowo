@@ -21,6 +21,7 @@ import { CALENDAR_TYPES } from "../content/calendar";
 import { PolaroidPhoto } from "../components/PolaroidPhoto";
 import { POLAROID_PHOTOS } from "../content/polaroids";
 import { randomUniqueItems } from "../utils/randomSelection";
+import { HomeSummaryCard } from "../components/home/HomeSummaryCard";
 
 const pick = <T,>(items: readonly T[]): T =>
   items[Math.floor(Math.random() * items.length)];
@@ -202,6 +203,7 @@ export function DashboardPage() {
             />
           )}
         </AppCard>
+        <HomeSummaryCard />
         <AppCard className="dashboard-card dashboard-card--tasks">
           <SectionHeader
             title={DASHBOARD_COPY.taskCardTitle}

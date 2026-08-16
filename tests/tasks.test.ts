@@ -5,7 +5,7 @@ import {
   isUncompletionTransition,
   isTaskAssignment,
   parseRecurrence,
-} from "../functions/_shared/tasks";
+} from "../server/_shared/tasks";
 
 describe("task rules", () => {
   it("validates assignment modes", () => {
