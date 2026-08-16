@@ -3569,6 +3569,44 @@ a:focus-visible {
   background: rgba(255, 211, 125, 0.25);
 }
 
+.home-light-toggle {
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+  border: 1px solid rgba(155, 106, 25, 0.14);
+  border-radius: 1.25rem;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.home-light-toggle svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.home-light-toggle:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 0.55rem 1.1rem rgba(155, 106, 25, 0.15);
+}
+
+.home-light-toggle:focus-visible {
+  outline: 3px solid rgba(114, 87, 232, 0.28);
+  outline-offset: 3px;
+}
+
+.home-light-toggle--on {
+  background: rgba(255, 211, 125, 0.55);
+  box-shadow: 0 0.45rem 1rem rgba(255, 193, 69, 0.24);
+}
+
+.home-light-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .home-device-card__icon--climate {
   color: #3777a6;
   background: rgba(121, 184, 255, 0.2);
@@ -3597,6 +3635,10 @@ a:focus-visible {
 
 .home-device-state--offline > span {
   background: #c4bdc7;
+}
+
+.home-device-state--off > span {
+  background: #e16868;
 }
 
 .home-power-actions {
@@ -3631,6 +3673,11 @@ a:focus-visible {
   accent-color: var(--purple);
 }
 
+.home-light-control {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .home-color-field {
   display: flex;
   align-items: center;
@@ -3646,6 +3693,42 @@ a:focus-visible {
   border: 1px solid var(--border);
   border-radius: 0.65rem;
   background: #fff;
+}
+
+.home-color-presets {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.home-color-preset {
+  min-width: 0;
+  height: 1.75rem;
+  padding: 0;
+  border: 2px solid rgba(90, 70, 45, 0.12);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.home-color-preset:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.home-color-preset--selected {
+  border-color: var(--purple);
+  box-shadow:
+    0 0 0 2px rgba(114, 87, 232, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+.home-color-preset:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .home-save-button {
