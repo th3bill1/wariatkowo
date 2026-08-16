@@ -28,7 +28,7 @@ COPY --from=build /app/build/server ./build/server
 COPY --from=build /app/dist ./dist
 COPY migrations ./migrations
 
-RUN mkdir -p /app/data && chown -R node:node /app
+RUN mkdir -p /app/data && chown node:node /app/data
 USER node
 
 EXPOSE 3000
