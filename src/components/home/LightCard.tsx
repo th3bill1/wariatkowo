@@ -4,12 +4,12 @@ import type { HomeLight } from "../../../shared/models";
 import { homeService } from "../../services/homeService";
 import { DeviceState } from "./DeviceState";
 
-const YELLOW_PRESETS = [
-  { label: "Bursztynowy", value: "#ffb347" },
-  { label: "Złoty", value: "#ffc928" },
-  { label: "Słoneczny", value: "#ffdf4d" },
-  { label: "Miodowy", value: "#ffd37d" },
-  { label: "Kremowy", value: "#ffe8a3" },
+const LIGHT_PRESETS = [
+  { label: "Noc", color: "#ff9a3d", brightness: 15 },
+  { label: "Relaks", color: "#ffb85c", brightness: 35 },
+  { label: "Wieczór", color: "#ffd37d", brightness: 55 },
+  { label: "Czytanie", color: "#ffe4a8", brightness: 75 },
+  { label: "Jasno", color: "#fff0cf", brightness: 100 },
 ] as const;
 
 type LightSetting = Parameters<typeof homeService.lightSettings>[1];
@@ -65,7 +65,9 @@ export function LightCard({
   );
   useEffect(() => {
     setBrightness(light.brightness ?? 100);
-    setColorTemperatureKelvin(defaultColorTemperature(light));
+    if (light.colorTemperatureKelvin !== null) {
+      setColorTemperatureKelvin(Math.round(light.colorTemperatureKelvin));
+    }
     setColor(rgbHex(light.rgb));
   }, [light]);
 
@@ -84,6 +86,21 @@ export function LightCard({
   const selectColor = (value: string, delay?: number) => {
     setColor(value);
     scheduleSetting("color", { rgb: hexRgb(value) }, delay);
+  };
+
+  const applyPreset = (preset: (typeof LIGHT_PRESETS)[number]) => {
+    Object.values(timers.current).forEach((timer) =>
+      window.clearTimeout(timer),
+    );
+    timers.current = {};
+    setColor(preset.color);
+    setBrightness(preset.brightness);
+    void runRef.current(() =>
+      homeService.lightSettings(light.id, {
+        brightness: preset.brightness,
+        rgb: hexRgb(preset.color),
+      }),
+    );
   };
 
   return (
@@ -139,21 +156,24 @@ export function LightCard({
             />
           </label>
           <div
-            aria-label="Szybkie odcienie żółtego"
+            aria-label="Gotowe ustawienia koloru i jasności"
             className="home-color-presets"
             role="group"
           >
-            {YELLOW_PRESETS.map((preset) => (
+            {LIGHT_PRESETS.map((preset) => (
               <button
-                aria-label={preset.label}
-                className={`home-color-preset ${color.toLowerCase() === preset.value ? "home-color-preset--selected" : ""}`}
+                aria-label={`${preset.label}, jasność ${preset.brightness}%`}
+                className={`home-color-preset ${color.toLowerCase() === preset.color && brightness === preset.brightness ? "home-color-preset--selected" : ""}`}
                 disabled={busy || !light.available}
-                key={preset.value}
-                onClick={() => selectColor(preset.value, 0)}
-                style={{ backgroundColor: preset.value }}
-                title={preset.label}
+                key={preset.label}
+                onClick={() => applyPreset(preset)}
+                style={{ backgroundColor: preset.color }}
+                title={`${preset.label}: ${preset.brightness}%`}
                 type="button"
-              />
+              >
+                <span>{preset.label}</span>
+                <strong>{preset.brightness}%</strong>
+              </button>
             ))}
           </div>
         </div>

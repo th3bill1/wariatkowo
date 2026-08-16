@@ -36,7 +36,7 @@ export function HomePage() {
       <PageHeader
         eyebrow="Wariatkowo pod kontrolą"
         title="Dom"
-        description="Domowe światła pod ręką, dokładnie tak jak lubimy."
+        description="Wszystko pod ręką"
       />
       {loading && !status ? (
         <LoadingState label="Sprawdzamy, co słychać w domu…" />

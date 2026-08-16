@@ -243,4 +243,59 @@ describe("Home Assistant status normalization", () => {
       color_temp_kelvin: 3_500,
     });
   });
+
+  it("applies preset RGB and brightness in one grouped call", async () => {
+    const callService = vi.fn(async () => []);
+    const client = {
+      getState: vi.fn(async (entityId: string) =>
+        state(entityId, "on", {
+          supported_color_modes: ["rgb", "color_temp"],
+          brightness: 128,
+          min_color_temp_kelvin: 1_700,
+          max_color_temp_kelvin: 6_500,
+        }),
+      ),
+      callService,
+    } as unknown as HomeAssistantClient;
+    const statement = {
+      bind: vi.fn(),
+      first: vi.fn(async () => ({
+        session_id: "session-1",
+        id: "member-misiek",
+        name: "Misiek",
+        slug: "misiek",
+      })),
+    };
+    statement.bind.mockReturnValue(statement);
+    const env = {
+      DB: { prepare: vi.fn(() => statement) },
+    } as unknown as Env;
+    const handlers = createHomeHandlers(config, client);
+    const response = await handlers.lightSettings({
+      request: new Request(
+        "http://localhost/api/home/lights/boskie-swiatlo/settings",
+        {
+          method: "POST",
+          headers: {
+            Cookie: "wariatkowo_session=test-token",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            brightness: 35,
+            rgb: [255, 184, 92],
+          }),
+        },
+      ),
+      env,
+      params: { id: "boskie-swiatlo" },
+    });
+
+    expect(response.status).toBe(200);
+    expect(client.getState).toHaveBeenCalledTimes(3);
+    expect(callService).toHaveBeenCalledWith("light", "turn_on", {
+      entity_id: ["light.ceiling_1", "light.ceiling_2", "light.ceiling_3"],
+      brightness: 89,
+      rgb_color: [255, 184, 92],
+    });
+  });
 });

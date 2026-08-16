@@ -25,6 +25,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: wariatkowo-cloudflared
     restart: unless-stopped
+    network_mode: host
     profiles: ["tunnel"]
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
