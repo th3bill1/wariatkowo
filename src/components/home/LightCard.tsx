@@ -15,6 +15,15 @@ function hexRgb(value: string): [number, number, number] {
   ) as [number, number, number];
 }
 
+function defaultColorTemperature(light: HomeLight): number {
+  if (light.colorTemperatureKelvin !== null) {
+    return Math.round(light.colorTemperatureKelvin);
+  }
+  const minimum = light.minColorTemperatureKelvin ?? 2_000;
+  const maximum = light.maxColorTemperatureKelvin ?? 6_500;
+  return Math.round((minimum + maximum) / 2);
+}
+
 export function LightCard({
   light,
   busy,
@@ -25,26 +34,15 @@ export function LightCard({
   run: (action: () => Promise<unknown>) => Promise<void>;
 }) {
   const [brightness, setBrightness] = useState(light.brightness ?? 100);
-  const [colorTemperature, setColorTemperature] = useState(
-    light.colorTemperature ?? light.minColorTemperature ?? 250,
+  const [colorTemperatureKelvin, setColorTemperatureKelvin] = useState(
+    defaultColorTemperature(light),
   );
   const [color, setColor] = useState(() => rgbHex(light.rgb));
   useEffect(() => {
     setBrightness(light.brightness ?? 100);
-    setColorTemperature(
-      light.colorTemperature ?? light.minColorTemperature ?? 250,
-    );
+    setColorTemperatureKelvin(defaultColorTemperature(light));
     setColor(rgbHex(light.rgb));
   }, [light]);
-
-  const save = () =>
-    run(() =>
-      homeService.lightSettings(light.id, {
-        ...(light.supportsBrightness ? { brightness } : {}),
-        ...(light.supportsColor ? { rgb: hexRgb(color) } : {}),
-        ...(light.supportsColorTemperature ? { colorTemperature } : {}),
-      }),
-    );
 
   return (
     <article className="home-device-card">
@@ -78,59 +76,92 @@ export function LightCard({
         </button>
       </div>
       {light.supportsBrightness ? (
-        <label className="home-range">
-          <span>
-            Jasność <strong>{brightness}%</strong>
-          </span>
-          <input
+        <div>
+          <label className="home-range">
+            <span>
+              Jasność <strong>{brightness}%</strong>
+            </span>
+            <input
+              disabled={busy || !light.available}
+              max="100"
+              min="1"
+              onChange={(event) => setBrightness(Number(event.target.value))}
+              type="range"
+              value={brightness}
+            />
+          </label>
+          <button
+            className="ghost-button home-save-button"
             disabled={busy || !light.available}
-            max="100"
-            min="1"
-            onChange={(event) => setBrightness(Number(event.target.value))}
-            type="range"
-            value={brightness}
-          />
-        </label>
+            onClick={() =>
+              void run(() =>
+                homeService.lightSettings(light.id, { brightness }),
+              )
+            }
+            type="button"
+          >
+            Ustaw jasność
+          </button>
+        </div>
       ) : null}
       {light.supportsColor ? (
-        <label className="home-color-field">
-          <span>Kolor</span>
-          <input
+        <div>
+          <label className="home-color-field">
+            <span>Kolor</span>
+            <input
+              disabled={busy || !light.available}
+              onChange={(event) => setColor(event.target.value)}
+              type="color"
+              value={color}
+            />
+          </label>
+          <button
+            className="ghost-button home-save-button"
             disabled={busy || !light.available}
-            onChange={(event) => setColor(event.target.value)}
-            type="color"
-            value={color}
-          />
-        </label>
+            onClick={() =>
+              void run(() =>
+                homeService.lightSettings(light.id, { rgb: hexRgb(color) }),
+              )
+            }
+            type="button"
+          >
+            Ustaw kolor
+          </button>
+        </div>
       ) : null}
       {light.supportsColorTemperature ? (
-        <label className="home-range">
-          <span>
-            Barwa <strong>{colorTemperature} mired</strong>
-          </span>
-          <input
+        <div>
+          <label className="home-range">
+            <span>
+              Barwa <strong>{colorTemperatureKelvin} K</strong>
+            </span>
+            <input
+              disabled={busy || !light.available}
+              max={light.maxColorTemperatureKelvin ?? 6_500}
+              min={light.minColorTemperatureKelvin ?? 2_000}
+              onChange={(event) =>
+                setColorTemperatureKelvin(Number(event.target.value))
+              }
+              step="50"
+              type="range"
+              value={colorTemperatureKelvin}
+            />
+          </label>
+          <button
+            className="ghost-button home-save-button"
             disabled={busy || !light.available}
-            max={light.maxColorTemperature ?? 500}
-            min={light.minColorTemperature ?? 153}
-            onChange={(event) =>
-              setColorTemperature(Number(event.target.value))
+            onClick={() =>
+              void run(() =>
+                homeService.lightSettings(light.id, {
+                  colorTemperatureKelvin,
+                }),
+              )
             }
-            type="range"
-            value={colorTemperature}
-          />
-        </label>
-      ) : null}
-      {light.supportsBrightness ||
-      light.supportsColor ||
-      light.supportsColorTemperature ? (
-        <button
-          className="ghost-button home-save-button"
-          disabled={busy || !light.available}
-          onClick={() => void save()}
-          type="button"
-        >
-          Zapisz ustawienia
-        </button>
+            type="button"
+          >
+            Ustaw barwę
+          </button>
+        </div>
       ) : null}
     </article>
   );

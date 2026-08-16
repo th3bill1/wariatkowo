@@ -150,7 +150,7 @@ Rollback is file-based: stop the container, restore the previous `.db` plus matc
 Create a long-lived access token in the Home Assistant user profile and place it only in the server `.env`:
 
 ```env
-HA_URL=http://192.168.0.18:8123
+HA_URL=http://192.168.0.2:8123
 HA_TOKEN=replace-me
 HA_TIMEOUT_MS=5000
 ```
@@ -160,8 +160,7 @@ The token is never exposed through a `VITE_` variable or returned to React. The 
 Configure logical devices with server-side entity IDs:
 
 ```env
-HA_LIGHT_LIVING_ROOM=light.salon
-HA_LIGHT_BEDROOM=light.sypialnia
+HA_LIGHTS_JSON={"boskie-swiatlo":{"name":"Boskie światło","entityIds":["light.192_168_0_12","light.192_168_0_13","light.192_168_0_14"]},"miskolampa":{"name":"Miśkolampa","entityId":"light.192_168_0_15"}}
 HA_AC=climate.hisense_ac
 HA_TV=media_player.samsung_tv
 HA_TV_REMOTE=remote.samsung_tv
@@ -169,13 +168,13 @@ HA_XBOX=media_player.xbox
 HA_XBOX_REMOTE=remote.xbox
 ```
 
-Additional lights can be supplied without frontend changes:
+Additional single or grouped logical lights can be supplied without frontend changes:
 
 ```env
-HA_LIGHTS_JSON={"kitchen":{"name":"Kuchnia","entityId":"light.kitchen"}}
+HA_LIGHTS_JSON={"kitchen":{"name":"Kuchnia","entityId":"light.kitchen"},"ceiling":{"name":"Sufit","entityIds":["light.ceiling_1","light.ceiling_2"]}}
 ```
 
-The UI exposes brightness, color, color temperature, climate modes, fan/swing, TV volume/mute/source and remote buttons only when the current entity state advertises those capabilities. State polling happens every four seconds only while `/home` is mounted and refreshes immediately after successful actions.
+Grouped lights are shown as on when any member is on, and every power or setting action targets all members. Brightness, RGB color and color temperature are applied independently so mutually exclusive Home Assistant color modes are never submitted together. Color temperature uses the Kelvin capabilities advertised by current Home Assistant light entities. The UI exposes controls only when the current entity state advertises those capabilities. State polling happens every four seconds only while `/home` is mounted and refreshes immediately after successful actions.
 
 ### TV and Xbox power
 

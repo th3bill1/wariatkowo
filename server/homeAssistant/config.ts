@@ -1,4 +1,9 @@
-type LightConfig = { id: string; name: string; entityId: string };
+type LightConfig = { id: string; name: string; entityIds: string[] };
+type MappingCandidate = {
+  name?: unknown;
+  entityId?: unknown;
+  entityIds?: unknown;
+};
 type MediaConfig = {
   id: "tv" | "xbox";
   name: string;
@@ -30,9 +35,7 @@ function entityId(candidate: string): boolean {
   return /^[a-z0-9_]+\.[a-z0-9_]+$/.test(candidate);
 }
 
-function parseJsonMapping(
-  variable: string,
-): Record<string, { name?: string; entityId?: string }> {
+function parseJsonMapping(variable: string): Record<string, MappingCandidate> {
   const raw = value(variable);
   if (!raw) return {};
   let parsed: unknown;
@@ -44,7 +47,7 @@ function parseJsonMapping(
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     throw new Error(`${variable} must be a JSON object.`);
   }
-  return parsed as Record<string, { name?: string; entityId?: string }>;
+  return parsed as Record<string, MappingCandidate>;
 }
 
 function parseLights(): LightConfig[] {
@@ -54,24 +57,39 @@ function parseLights(): LightConfig[] {
     ["bedroom", "Sypialnia", value("HA_LIGHT_BEDROOM")],
   ] as const;
   for (const [id, name, entityId] of legacy) {
-    if (entityId) lights.set(id, { id, name, entityId });
+    if (entityId) lights.set(id, { id, name, entityIds: [entityId] });
   }
   for (const [id, candidate] of Object.entries(
     parseJsonMapping("HA_LIGHTS_JSON"),
   )) {
+    const rawEntityIds =
+      typeof candidate?.entityId === "string"
+        ? [candidate.entityId]
+        : Array.isArray(candidate?.entityIds)
+          ? candidate.entityIds
+          : [];
+    const entityIds = [
+      ...new Set(
+        rawEntityIds
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => item.trim()),
+      ),
+    ];
     if (
       !logicalId(id) ||
       !candidate ||
       typeof candidate !== "object" ||
-      typeof candidate.entityId !== "string" ||
-      !entityId(candidate.entityId.trim())
+      rawEntityIds.length === 0 ||
+      entityIds.length !== rawEntityIds.length ||
+      entityIds.some((item) => !entityId(item)) ||
+      (candidate.name !== undefined && typeof candidate.name !== "string")
     ) {
       throw new Error("HA_LIGHTS_JSON contains an invalid light entry.");
     }
     lights.set(id, {
       id,
       name: candidate.name?.trim() || id,
-      entityId: candidate.entityId.trim(),
+      entityIds,
     });
   }
   return [...lights.values()];
@@ -95,7 +113,8 @@ function parseScenes(): SceneConfig[] {
       !candidate ||
       typeof candidate !== "object" ||
       typeof candidate.entityId !== "string" ||
-      !entityId(candidate.entityId.trim())
+      !entityId(candidate.entityId.trim()) ||
+      (candidate.name !== undefined && typeof candidate.name !== "string")
     ) {
       throw new Error("HA_SCENES_JSON contains an invalid scene entry.");
     }
@@ -160,7 +179,7 @@ export function loadHomeAssistantConfig(): HomeAssistantConfig {
     scenes: parseScenes(),
   };
   const configuredEntities = [
-    ...config.lights.map((light) => light.entityId),
+    ...config.lights.flatMap((light) => light.entityIds),
     config.ac?.entityId,
     config.tv?.entityId,
     config.tv?.remoteEntityId,

@@ -20,7 +20,7 @@ export const homeService = {
     settings: {
       brightness?: number;
       rgb?: [number, number, number];
-      colorTemperature?: number;
+      colorTemperatureKelvin?: number;
     },
   ) {
     return post(`/lights/${encodeURIComponent(id)}/settings`, settings);

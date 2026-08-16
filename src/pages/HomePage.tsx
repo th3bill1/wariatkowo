@@ -3,9 +3,7 @@ import { AppCard } from "../components/ui/AppCard";
 import { LoadingState } from "../components/ui/LoadingState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SectionHeader } from "../components/ui/SectionHeader";
-import { ClimateCard } from "../components/home/ClimateCard";
 import { LightCard } from "../components/home/LightCard";
-import { MediaCard } from "../components/home/MediaCard";
 import { useHomeStatus } from "../hooks/useHomeStatus";
 import { homeService } from "../services/homeService";
 import { useState } from "react";
@@ -32,18 +30,13 @@ export function HomePage() {
     }
   };
 
-  const configured = status
-    ? status.lights.length +
-      Number(Boolean(status.ac)) +
-      Number(Boolean(status.tv)) +
-      Number(Boolean(status.xbox))
-    : 0;
+  const configured = status?.lights.length ?? 0;
   return (
     <div className="content-stack home-page">
       <PageHeader
         eyebrow="Wariatkowo pod kontrolą"
         title="Dom"
-        description="Światła, klima i wieczorne rozrywki — wszystko w jednym miejscu."
+        description="Domowe światła pod ręką, dokładnie tak jak lubimy."
       />
       {loading && !status ? (
         <LoadingState label="Sprawdzamy, co słychać w domu…" />
@@ -109,30 +102,6 @@ export function HomePage() {
                 run={run}
               />
             ))}
-          </div>
-        </section>
-      ) : null}
-      {status?.ac ? (
-        <section>
-          <SectionHeader title="Klimatyzacja" />
-          <div className="home-device-grid">
-            <ClimateCard busy={pending} climate={status.ac} run={run} />
-          </div>
-        </section>
-      ) : null}
-      {status?.tv || status?.xbox ? (
-        <section>
-          <SectionHeader
-            title="Rozrywka"
-            description="Telewizor i Xbox bez szukania pilotów."
-          />
-          <div className="home-device-grid">
-            {status.tv ? (
-              <MediaCard busy={pending} device={status.tv} run={run} />
-            ) : null}
-            {status.xbox ? (
-              <MediaCard busy={pending} device={status.xbox} run={run} />
-            ) : null}
           </div>
         </section>
       ) : null}

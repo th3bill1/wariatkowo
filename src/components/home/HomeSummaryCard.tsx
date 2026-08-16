@@ -36,27 +36,6 @@ export function HomeSummaryCard() {
             <strong>{lightCount}</strong> światła włączone
           </li>
         ) : null}
-        {status?.ac?.currentTemperature != null ? (
-          <li>
-            <strong>{status.ac.currentTemperature}°C</strong> w mieszkaniu
-          </li>
-        ) : null}
-        {status?.tv ? (
-          <li>
-            TV:{" "}
-            <strong>
-              {status.tv.state === "off" ? "wyłączony" : status.tv.state}
-            </strong>
-          </li>
-        ) : null}
-        {status?.xbox ? (
-          <li>
-            Xbox:{" "}
-            <strong>
-              {status.xbox.state === "off" ? "wyłączony" : status.xbox.state}
-            </strong>
-          </li>
-        ) : null}
         {!status?.connected ? (
           <li className="home-summary-list__quiet">
             Urządzenia mogą być chwilowo offline.

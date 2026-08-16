@@ -30,38 +30,118 @@ const stringArray = (
 const available = (state?: HomeAssistantState): boolean =>
   Boolean(state && state.state !== "unavailable" && state.state !== "unknown");
 
+const average = (values: Array<number | null>): number | null => {
+  const present = values.filter((value): value is number => value !== null);
+  return present.length
+    ? present.reduce((sum, value) => sum + value, 0) / present.length
+    : null;
+};
+
+const colorModes = (state: HomeAssistantState): string[] =>
+  stringArray(state.attributes, "supported_color_modes");
+
+const supportsBrightness = (state: HomeAssistantState): boolean =>
+  "brightness" in state.attributes ||
+  colorModes(state).some((mode) => mode !== "onoff");
+
+const supportsColor = (state: HomeAssistantState): boolean =>
+  colorModes(state).some((mode) =>
+    ["rgb", "rgbw", "rgbww", "hs", "xy"].includes(mode),
+  );
+
+const supportsColorTemperature = (state: HomeAssistantState): boolean =>
+  colorModes(state).includes("color_temp") ||
+  "color_temp_kelvin" in state.attributes ||
+  "color_temp" in state.attributes;
+
+const colorTemperatureKelvin = (state: HomeAssistantState): number | null => {
+  const kelvin = optionalNumber(state.attributes, "color_temp_kelvin");
+  if (kelvin !== null) return kelvin;
+  const mired = optionalNumber(state.attributes, "color_temp");
+  return mired === null ? null : Math.round(1_000_000 / mired);
+};
+
+const minColorTemperatureKelvin = (
+  state: HomeAssistantState,
+): number | null => {
+  const kelvin = optionalNumber(state.attributes, "min_color_temp_kelvin");
+  if (kelvin !== null) return kelvin;
+  const maxMireds = optionalNumber(state.attributes, "max_mireds");
+  return maxMireds === null ? null : Math.round(1_000_000 / maxMireds);
+};
+
+const maxColorTemperatureKelvin = (
+  state: HomeAssistantState,
+): number | null => {
+  const kelvin = optionalNumber(state.attributes, "max_color_temp_kelvin");
+  if (kelvin !== null) return kelvin;
+  const minMireds = optionalNumber(state.attributes, "min_mireds");
+  return minMireds === null ? null : Math.round(1_000_000 / minMireds);
+};
+
 function lightStatus(
   config: HomeAssistantConfig["lights"][number],
-  state?: HomeAssistantState,
+  memberStates: Array<HomeAssistantState | undefined>,
 ): HomeLight {
-  const attributes = state?.attributes ?? {};
-  const colorModes = stringArray(attributes, "supported_color_modes");
-  const rgb = Array.isArray(attributes.rgb_color)
-    ? attributes.rgb_color.filter(
-        (item): item is number => typeof item === "number",
-      )
-    : [];
-  const rawBrightness = optionalNumber(attributes, "brightness");
-  const minMireds = optionalNumber(attributes, "min_mireds");
-  const maxMireds = optionalNumber(attributes, "max_mireds");
+  const states = memberStates.filter((state): state is HomeAssistantState =>
+    Boolean(state),
+  );
+  const usableStates = states.filter((state) => available(state));
+  const representativeStates = usableStates.length ? usableStates : states;
+  const rawBrightness = average(
+    representativeStates.map((state) =>
+      optionalNumber(state.attributes, "brightness"),
+    ),
+  );
+  const rgbValues = representativeStates
+    .map((state) =>
+      Array.isArray(state.attributes.rgb_color) &&
+      state.attributes.rgb_color.length === 3 &&
+      state.attributes.rgb_color.every((item) => typeof item === "number")
+        ? (state.attributes.rgb_color as [number, number, number])
+        : null,
+    )
+    .filter((rgb): rgb is [number, number, number] => rgb !== null);
+  const rgb = rgbValues.length
+    ? ([0, 1, 2].map((channel) =>
+        Math.round(
+          rgbValues.reduce((sum, value) => sum + value[channel], 0) /
+            rgbValues.length,
+        ),
+      ) as [number, number, number])
+    : null;
+  const minimums = representativeStates
+    .map(minColorTemperatureKelvin)
+    .filter((value): value is number => value !== null);
+  const maximums = representativeStates
+    .map(maxColorTemperatureKelvin)
+    .filter((value): value is number => value !== null);
+  const allConfiguredStatesKnown = states.length === config.entityIds.length;
   return {
     id: config.id,
     name: config.name,
-    state: state?.state ?? "unavailable",
-    available: available(state),
+    state: usableStates.some((state) => state.state === "on")
+      ? "on"
+      : usableStates.length
+        ? usableStates.every((state) => state.state === "off")
+          ? "off"
+          : usableStates[0].state
+        : "unavailable",
+    available: usableStates.length > 0,
     brightness:
       rawBrightness === null ? null : Math.round((rawBrightness / 255) * 100),
-    rgb: rgb.length === 3 ? (rgb as [number, number, number]) : null,
-    colorTemperature: optionalNumber(attributes, "color_temp"),
-    minColorTemperature: minMireds,
-    maxColorTemperature: maxMireds,
+    rgb,
+    colorTemperatureKelvin: (() => {
+      const value = average(representativeStates.map(colorTemperatureKelvin));
+      return value === null ? null : Math.round(value);
+    })(),
+    minColorTemperatureKelvin: minimums.length ? Math.max(...minimums) : null,
+    maxColorTemperatureKelvin: maximums.length ? Math.min(...maximums) : null,
     supportsBrightness:
-      rawBrightness !== null || colorModes.some((mode) => mode !== "onoff"),
-    supportsColor: colorModes.some((mode) =>
-      ["rgb", "rgbw", "rgbww", "hs", "xy"].includes(mode),
-    ),
+      allConfiguredStatesKnown && states.every(supportsBrightness),
+    supportsColor: allConfiguredStatesKnown && states.every(supportsColor),
     supportsColorTemperature:
-      colorModes.includes("color_temp") || "color_temp" in attributes,
+      allConfiguredStatesKnown && states.every(supportsColorTemperature),
   };
 }
 
@@ -152,7 +232,10 @@ export async function getHomeStatus(
     message,
     updatedAt: new Date().toISOString(),
     lights: config.lights.map((light) =>
-      lightStatus(light, stateMap.get(light.entityId)),
+      lightStatus(
+        light,
+        light.entityIds.map((entityId) => stateMap.get(entityId)),
+      ),
     ),
     ac: config.ac
       ? climateStatus(config.ac, stateMap.get(config.ac.entityId))

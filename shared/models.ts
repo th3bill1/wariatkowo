@@ -128,9 +128,9 @@ export type HomeLight = {
   available: boolean;
   brightness: number | null;
   rgb: [number, number, number] | null;
-  colorTemperature: number | null;
-  minColorTemperature: number | null;
-  maxColorTemperature: number | null;
+  colorTemperatureKelvin: number | null;
+  minColorTemperatureKelvin: number | null;
+  maxColorTemperatureKelvin: number | null;
   supportsBrightness: boolean;
   supportsColor: boolean;
   supportsColorTemperature: boolean;

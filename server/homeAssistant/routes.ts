@@ -91,6 +91,55 @@ function configuredMedia(config: HomeAssistantConfig, kind: "tv" | "xbox") {
   return kind === "tv" ? config.tv : config.xbox;
 }
 
+function entityTarget(entityIds: string[]): string | string[] {
+  return entityIds.length === 1 ? entityIds[0] : entityIds;
+}
+
+function lightColorModes(state: HomeAssistantState): string[] {
+  return stringList(state.attributes.supported_color_modes);
+}
+
+function lightSupportsBrightness(state: HomeAssistantState): boolean {
+  return (
+    "brightness" in state.attributes ||
+    lightColorModes(state).some((mode) => mode !== "onoff")
+  );
+}
+
+function lightSupportsColor(state: HomeAssistantState): boolean {
+  return lightColorModes(state).some((mode) =>
+    ["rgb", "rgbw", "rgbww", "hs", "xy"].includes(mode),
+  );
+}
+
+function lightSupportsColorTemperature(state: HomeAssistantState): boolean {
+  return (
+    lightColorModes(state).includes("color_temp") ||
+    "color_temp_kelvin" in state.attributes ||
+    "color_temp" in state.attributes
+  );
+}
+
+function minimumColorTemperatureKelvin(state: HomeAssistantState): number {
+  if (typeof state.attributes.min_color_temp_kelvin === "number") {
+    return state.attributes.min_color_temp_kelvin;
+  }
+  if (typeof state.attributes.max_mireds === "number") {
+    return Math.round(1_000_000 / state.attributes.max_mireds);
+  }
+  return 2_000;
+}
+
+function maximumColorTemperatureKelvin(state: HomeAssistantState): number {
+  if (typeof state.attributes.max_color_temp_kelvin === "number") {
+    return state.attributes.max_color_temp_kelvin;
+  }
+  if (typeof state.attributes.min_mireds === "number") {
+    return Math.round(1_000_000 / state.attributes.min_mireds);
+  }
+  return 6_500;
+}
+
 async function callPower(
   client: HomeAssistantClient,
   entityId: string,
@@ -123,7 +172,7 @@ export function createHomeHandlers(
         return error("NOT_FOUND", "Nie znaleziono tego światła.", 404);
       try {
         await client.callService("light", on ? "turn_on" : "turn_off", {
-          entity_id: light.entityId,
+          entity_id: entityTarget(light.entityIds),
         });
         return success({ updated: true });
       } catch (caught) {
@@ -137,12 +186,20 @@ export function createHomeHandlers(
     const body = await bodyObject(context.request);
     if (body instanceof Response) return body;
     try {
-      const state = await client.getState(light.entityId);
-      const modes = stringList(state.attributes.supported_color_modes);
+      const states = await Promise.all(
+        light.entityIds.map((entityId) => client.getState(entityId)),
+      );
       const serviceData: Record<string, unknown> = {
-        entity_id: light.entityId,
+        entity_id: entityTarget(light.entityIds),
       };
       let settings = 0;
+
+      if (body.rgb !== undefined && body.colorTemperatureKelvin !== undefined) {
+        return error(
+          "VALIDATION_ERROR",
+          "Kolor RGB i temperatura barwowa muszą być ustawiane osobno.",
+        );
+      }
 
       if (body.brightness !== undefined) {
         if (
@@ -153,10 +210,7 @@ export function createHomeHandlers(
         ) {
           return error("VALIDATION_ERROR", "Jasność musi wynosić od 1 do 100.");
         }
-        if (
-          !("brightness" in state.attributes) &&
-          !modes.some((mode) => mode !== "onoff")
-        ) {
+        if (!states.every(lightSupportsBrightness)) {
           return error(
             "VALIDATION_ERROR",
             "To światło nie obsługuje jasności.",
@@ -183,47 +237,34 @@ export function createHomeHandlers(
             "Kolor RGB musi zawierać trzy liczby 0–255.",
           );
         }
-        if (
-          !modes.some((mode) =>
-            ["rgb", "rgbw", "rgbww", "hs", "xy"].includes(mode),
-          )
-        ) {
+        if (!states.every(lightSupportsColor)) {
           return error("VALIDATION_ERROR", "To światło nie obsługuje koloru.");
         }
         serviceData.rgb_color = body.rgb;
         settings += 1;
       }
 
-      if (body.colorTemperature !== undefined) {
-        const min =
-          typeof state.attributes.min_mireds === "number"
-            ? state.attributes.min_mireds
-            : 153;
-        const max =
-          typeof state.attributes.max_mireds === "number"
-            ? state.attributes.max_mireds
-            : 500;
+      if (body.colorTemperatureKelvin !== undefined) {
+        const min = Math.max(...states.map(minimumColorTemperatureKelvin));
+        const max = Math.min(...states.map(maximumColorTemperatureKelvin));
         if (
-          typeof body.colorTemperature !== "number" ||
-          !Number.isInteger(body.colorTemperature) ||
-          body.colorTemperature < min ||
-          body.colorTemperature > max
+          typeof body.colorTemperatureKelvin !== "number" ||
+          !Number.isInteger(body.colorTemperatureKelvin) ||
+          body.colorTemperatureKelvin < min ||
+          body.colorTemperatureKelvin > max
         ) {
           return error(
             "VALIDATION_ERROR",
-            `Temperatura barwowa musi wynosić od ${min} do ${max} miredów.`,
+            `Temperatura barwowa musi wynosić od ${min} K do ${max} K.`,
           );
         }
-        if (
-          !modes.includes("color_temp") &&
-          !("color_temp" in state.attributes)
-        ) {
+        if (!states.every(lightSupportsColorTemperature)) {
           return error(
             "VALIDATION_ERROR",
             "To światło nie obsługuje temperatury barwowej.",
           );
         }
-        serviceData.color_temp = body.colorTemperature;
+        serviceData.color_temp_kelvin = body.colorTemperatureKelvin;
         settings += 1;
       }
 
