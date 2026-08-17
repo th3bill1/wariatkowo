@@ -296,7 +296,9 @@ export function createHomeHandlers(
       }
     });
 
-  const acValue = (kind: "temperature" | "mode" | "fan" | "swing") =>
+  const acValue = (
+    kind: "temperature" | "mode" | "fan" | "swing" | "horizontalSwing",
+  ) =>
     withAuth(async (context) => {
       if (!config.ac)
         return error(
@@ -346,14 +348,21 @@ export function createHomeHandlers(
           service = "set_temperature";
           serviceData.temperature = body.temperature;
         } else {
-          const valueName = kind === "mode" ? "mode" : kind;
+          const valueName =
+            kind === "mode"
+              ? "mode"
+              : kind === "horizontalSwing"
+                ? "swing"
+                : kind;
           const requested = body[valueName];
           const attribute =
             kind === "mode"
               ? "hvac_modes"
               : kind === "fan"
                 ? "fan_modes"
-                : "swing_modes";
+                : kind === "horizontalSwing"
+                  ? "swing_horizontal_modes"
+                  : "swing_modes";
           const supported = stringList(state.attributes[attribute]);
           if (typeof requested !== "string" || !supported.includes(requested)) {
             return error(
@@ -361,9 +370,16 @@ export function createHomeHandlers(
               "Wybrane ustawienie nie jest obsługiwane.",
             );
           }
-          service = kind === "mode" ? "set_hvac_mode" : `set_${kind}_mode`;
-          serviceData[kind === "mode" ? "hvac_mode" : `${kind}_mode`] =
-            requested;
+          if (kind === "mode") {
+            service = "set_hvac_mode";
+            serviceData.hvac_mode = requested;
+          } else if (kind === "horizontalSwing") {
+            service = "set_swing_horizontal_mode";
+            serviceData.swing_horizontal_mode = requested;
+          } else {
+            service = `set_${kind}_mode`;
+            serviceData[`${kind}_mode`] = requested;
+          }
         }
         await client.callService("climate", service, serviceData);
         return success({ updated: true });
@@ -371,6 +387,139 @@ export function createHomeHandlers(
         return serviceError(caught);
       }
     });
+
+  const acSwitch = withAuth(async (context) => {
+    if (!config.ac) {
+      return error(
+        "NOT_CONFIGURED",
+        "Klimatyzacja nie jest skonfigurowana.",
+        503,
+      );
+    }
+    const control = config.ac.switches.find(
+      (item) => item.id === context.params.id,
+    );
+    if (!control) {
+      return error(
+        "NOT_FOUND",
+        "Nie znaleziono tej funkcji klimatyzacji.",
+        404,
+      );
+    }
+    const body = await bodyObject(context.request);
+    if (body instanceof Response) return body;
+    if (typeof body.enabled !== "boolean") {
+      return error(
+        "VALIDATION_ERROR",
+        "Pole enabled musi być wartością logiczną.",
+      );
+    }
+    try {
+      await client.callService(
+        "switch",
+        body.enabled ? "turn_on" : "turn_off",
+        {
+          entity_id: control.entityId,
+        },
+      );
+      return success({ updated: true });
+    } catch (caught) {
+      return serviceError(caught);
+    }
+  });
+
+  const acSelect = withAuth(async (context) => {
+    if (!config.ac) {
+      return error(
+        "NOT_CONFIGURED",
+        "Klimatyzacja nie jest skonfigurowana.",
+        503,
+      );
+    }
+    const control = config.ac.selects.find(
+      (item) => item.id === context.params.id,
+    );
+    if (!control) {
+      return error(
+        "NOT_FOUND",
+        "Nie znaleziono tej funkcji klimatyzacji.",
+        404,
+      );
+    }
+    const body = await bodyObject(context.request);
+    if (body instanceof Response) return body;
+    try {
+      const state = await client.getState(control.entityId);
+      const options = stringList(state.attributes.options);
+      if (typeof body.option !== "string" || !options.includes(body.option)) {
+        return error("VALIDATION_ERROR", "Wybrana opcja nie jest obsługiwana.");
+      }
+      await client.callService("select", "select_option", {
+        entity_id: control.entityId,
+        option: body.option,
+      });
+      return success({ updated: true });
+    } catch (caught) {
+      return serviceError(caught);
+    }
+  });
+
+  const acNumber = withAuth(async (context) => {
+    if (!config.ac) {
+      return error(
+        "NOT_CONFIGURED",
+        "Klimatyzacja nie jest skonfigurowana.",
+        503,
+      );
+    }
+    const control = config.ac.numbers.find(
+      (item) => item.id === context.params.id,
+    );
+    if (!control) {
+      return error(
+        "NOT_FOUND",
+        "Nie znaleziono tej funkcji klimatyzacji.",
+        404,
+      );
+    }
+    const body = await bodyObject(context.request);
+    if (body instanceof Response) return body;
+    try {
+      const state = await client.getState(control.entityId);
+      const min =
+        typeof state.attributes.min === "number" ? state.attributes.min : 0;
+      const max =
+        typeof state.attributes.max === "number" ? state.attributes.max : 100;
+      const step =
+        typeof state.attributes.step === "number" && state.attributes.step > 0
+          ? state.attributes.step
+          : 1;
+      const alignedToStep =
+        typeof body.value === "number" &&
+        Math.abs(
+          (body.value - min) / step - Math.round((body.value - min) / step),
+        ) < 1e-6;
+      if (
+        typeof body.value !== "number" ||
+        !Number.isFinite(body.value) ||
+        body.value < min ||
+        body.value > max ||
+        !alignedToStep
+      ) {
+        return error(
+          "VALIDATION_ERROR",
+          `Wartość musi wynosić od ${min} do ${max} (krok ${step}).`,
+        );
+      }
+      await client.callService("number", "set_value", {
+        entity_id: control.entityId,
+        value: body.value,
+      });
+      return success({ updated: true });
+    } catch (caught) {
+      return serviceError(caught);
+    }
+  });
 
   const mediaPower = (kind: "tv" | "xbox", on: boolean) =>
     withAuth(async () => {
@@ -504,6 +653,10 @@ export function createHomeHandlers(
     acMode: acValue("mode"),
     acFan: acValue("fan"),
     acSwing: acValue("swing"),
+    acHorizontalSwing: acValue("horizontalSwing"),
+    acSwitch,
+    acSelect,
+    acNumber,
     tvOn: mediaPower("tv", true),
     tvOff: mediaPower("tv", false),
     tvVolume: tvValue("volume"),

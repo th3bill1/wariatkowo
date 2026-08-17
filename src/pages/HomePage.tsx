@@ -3,6 +3,7 @@ import { AppCard } from "../components/ui/AppCard";
 import { LoadingState } from "../components/ui/LoadingState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { SectionHeader } from "../components/ui/SectionHeader";
+import { ClimateCard } from "../components/home/ClimateCard";
 import { LightCard } from "../components/home/LightCard";
 import { useHomeStatus } from "../hooks/useHomeStatus";
 import { homeService } from "../services/homeService";
@@ -30,7 +31,7 @@ export function HomePage() {
     }
   };
 
-  const configured = status?.lights.length ?? 0;
+  const configured = (status?.lights.length ?? 0) + (status?.ac ? 1 : 0);
   return (
     <div className="content-stack home-page">
       <PageHeader
@@ -91,7 +92,7 @@ export function HomePage() {
         <section>
           <SectionHeader
             title="Światła"
-            description="Ciepło, jasno albo kolorowo."
+            description="I wszystko jasne."
           />
           <div className="home-device-grid">
             {status.lights.map((light) => (
@@ -102,6 +103,17 @@ export function HomePage() {
                 run={run}
               />
             ))}
+          </div>
+        </section>
+      ) : null}
+      {status?.ac ? (
+        <section>
+          <SectionHeader
+            title="Szumownica"
+            description="Temperatura, nawiew i dodatkowe funkcje."
+          />
+          <div className="home-device-grid">
+            <ClimateCard busy={pending} climate={status.ac} run={run} />
           </div>
         </section>
       ) : null}

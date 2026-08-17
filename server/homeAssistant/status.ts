@@ -147,8 +147,9 @@ function lightStatus(
 
 function climateStatus(
   config: NonNullable<HomeAssistantConfig["ac"]>,
-  state?: HomeAssistantState,
+  states: Map<string, HomeAssistantState>,
 ): HomeClimate {
+  const state = states.get(config.entityId);
   const attributes = state?.attributes ?? {};
   return {
     id: "ac",
@@ -167,6 +168,48 @@ function climateStatus(
     swingMode:
       typeof attributes.swing_mode === "string" ? attributes.swing_mode : null,
     swingModes: stringArray(attributes, "swing_modes"),
+    horizontalSwingMode:
+      typeof attributes.swing_horizontal_mode === "string"
+        ? attributes.swing_horizontal_mode
+        : null,
+    horizontalSwingModes: stringArray(attributes, "swing_horizontal_modes"),
+    switches: config.switches.map((control) => {
+      const controlState = states.get(control.entityId);
+      return {
+        id: control.id,
+        name: control.name,
+        state: controlState?.state ?? "unavailable",
+        available: available(controlState),
+      };
+    }),
+    selects: config.selects.map((control) => {
+      const controlState = states.get(control.entityId);
+      return {
+        id: control.id,
+        name: control.name,
+        value: controlState?.state ?? null,
+        options: stringArray(controlState?.attributes ?? {}, "options"),
+        available: available(controlState),
+      };
+    }),
+    numbers: config.numbers.map((control) => {
+      const controlState = states.get(control.entityId);
+      const numericValue = Number(controlState?.state);
+      const controlAttributes = controlState?.attributes ?? {};
+      return {
+        id: control.id,
+        name: control.name,
+        value: Number.isFinite(numericValue) ? numericValue : null,
+        min: numberAttribute(controlAttributes, "min", 0),
+        max: numberAttribute(controlAttributes, "max", 100),
+        step: numberAttribute(controlAttributes, "step", 1),
+        unit:
+          typeof controlAttributes.unit_of_measurement === "string"
+            ? controlAttributes.unit_of_measurement
+            : null,
+        available: available(controlState),
+      };
+    }),
   };
 }
 
@@ -237,9 +280,7 @@ export async function getHomeStatus(
         light.entityIds.map((entityId) => stateMap.get(entityId)),
       ),
     ),
-    ac: config.ac
-      ? climateStatus(config.ac, stateMap.get(config.ac.entityId))
-      : null,
+    ac: config.ac ? climateStatus(config.ac, stateMap) : null,
     tv: config.tv
       ? mediaStatus(
           config.tv,

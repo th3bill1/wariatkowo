@@ -40,6 +40,18 @@ export const homeService = {
   acSwing(swing: string) {
     return post("/ac/swing", { swing });
   },
+  acHorizontalSwing(swing: string) {
+    return post("/ac/horizontal-swing", { swing });
+  },
+  acSwitch(id: string, enabled: boolean) {
+    return post(`/ac/switches/${encodeURIComponent(id)}`, { enabled });
+  },
+  acSelect(id: string, option: string) {
+    return post(`/ac/selects/${encodeURIComponent(id)}`, { option });
+  },
+  acNumber(id: string, value: number) {
+    return post(`/ac/numbers/${encodeURIComponent(id)}`, { value });
+  },
   mediaPower(kind: "tv" | "xbox", on: boolean) {
     return post(`/${kind}/${on ? "on" : "off"}`);
   },

@@ -11,13 +11,22 @@ type MediaConfig = {
   remoteEntityId?: string;
 };
 type SceneConfig = { id: string; name: string; entityId: string };
+type EntityControlConfig = { id: string; name: string; entityId: string };
+type ClimateConfig = {
+  id: "ac";
+  name: string;
+  entityId: string;
+  switches: EntityControlConfig[];
+  selects: EntityControlConfig[];
+  numbers: EntityControlConfig[];
+};
 
 export type HomeAssistantConfig = {
   url: string;
   token: string;
   timeoutMs: number;
   lights: LightConfig[];
-  ac?: { id: "ac"; name: string; entityId: string };
+  ac?: ClimateConfig;
   tv?: MediaConfig;
   xbox?: MediaConfig;
   scenes: SceneConfig[];
@@ -137,6 +146,30 @@ function parseScenes(): SceneConfig[] {
   return [...scenes.values()];
 }
 
+function parseEntityControls(
+  variable: string,
+  domain: "switch" | "select" | "number",
+): EntityControlConfig[] {
+  return Object.entries(parseJsonMapping(variable)).map(([id, candidate]) => {
+    if (
+      !logicalId(id) ||
+      !candidate ||
+      typeof candidate !== "object" ||
+      typeof candidate.entityId !== "string" ||
+      !entityId(candidate.entityId.trim()) ||
+      !candidate.entityId.trim().startsWith(`${domain}.`) ||
+      (candidate.name !== undefined && typeof candidate.name !== "string")
+    ) {
+      throw new Error(`${variable} contains an invalid ${domain} entry.`);
+    }
+    return {
+      id,
+      name: candidate.name?.trim() || id,
+      entityId: candidate.entityId.trim(),
+    };
+  });
+}
+
 function mediaConfig(
   id: "tv" | "xbox",
   name: string,
@@ -166,13 +199,31 @@ export function loadHomeAssistantConfig(): HomeAssistantConfig {
     }
   }
   const acEntity = value("HA_AC");
+  const acSwitches = parseEntityControls("HA_AC_SWITCHES_JSON", "switch");
+  const acSelects = parseEntityControls("HA_AC_SELECTS_JSON", "select");
+  const acNumbers = parseEntityControls("HA_AC_NUMBERS_JSON", "number");
+  if (
+    !acEntity &&
+    (acSwitches.length || acSelects.length || acNumbers.length)
+  ) {
+    throw new Error(
+      "HA_AC must be set when auxiliary AC controls are configured.",
+    );
+  }
   const config: HomeAssistantConfig = {
     url,
     token: value("HA_TOKEN") ?? "",
     timeoutMs: timeout,
     lights: parseLights(),
     ac: acEntity
-      ? { id: "ac", name: "Klimatyzacja", entityId: acEntity }
+      ? {
+          id: "ac",
+          name: "Klimatyzacja",
+          entityId: acEntity,
+          switches: acSwitches,
+          selects: acSelects,
+          numbers: acNumbers,
+        }
       : undefined,
     tv: mediaConfig("tv", "Telewizor", "HA_TV", "HA_TV_REMOTE"),
     xbox: mediaConfig("xbox", "Xbox", "HA_XBOX", "HA_XBOX_REMOTE"),
@@ -181,6 +232,9 @@ export function loadHomeAssistantConfig(): HomeAssistantConfig {
   const configuredEntities = [
     ...config.lights.flatMap((light) => light.entityIds),
     config.ac?.entityId,
+    ...(config.ac?.switches.map((control) => control.entityId) ?? []),
+    ...(config.ac?.selects.map((control) => control.entityId) ?? []),
+    ...(config.ac?.numbers.map((control) => control.entityId) ?? []),
     config.tv?.entityId,
     config.tv?.remoteEntityId,
     config.xbox?.entityId,

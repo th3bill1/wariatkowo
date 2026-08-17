@@ -1,17 +1,16 @@
 export function DeviceState({
   state,
   available,
+  label,
 }: {
   state: string;
   available: boolean;
+  label?: string;
 }) {
-  const label = !available
+  const displayedLabel = !available
     ? "Niedostępne"
-    : state === "on"
-      ? "Włączone"
-      : state === "off"
-        ? "Wyłączone"
-        : state;
+    : (label ??
+      (state === "on" ? "Włączone" : state === "off" ? "Wyłączone" : state));
   const stateClass = !available
     ? "home-device-state--offline"
     : state === "off"
@@ -20,7 +19,7 @@ export function DeviceState({
   return (
     <span className={`home-device-state ${stateClass}`}>
       <span aria-hidden="true" />
-      {label}
+      {displayedLabel}
     </span>
   );
 }

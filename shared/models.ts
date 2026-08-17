@@ -135,6 +135,29 @@ export type HomeLight = {
   supportsColor: boolean;
   supportsColorTemperature: boolean;
 };
+export type HomeClimateSwitch = {
+  id: string;
+  name: string;
+  state: HomeDeviceState;
+  available: boolean;
+};
+export type HomeClimateSelect = {
+  id: string;
+  name: string;
+  value: string | null;
+  options: string[];
+  available: boolean;
+};
+export type HomeClimateNumber = {
+  id: string;
+  name: string;
+  value: number | null;
+  min: number;
+  max: number;
+  step: number;
+  unit: string | null;
+  available: boolean;
+};
 export type HomeClimate = {
   id: "ac";
   name: string;
@@ -150,6 +173,11 @@ export type HomeClimate = {
   fanModes: string[];
   swingMode: string | null;
   swingModes: string[];
+  horizontalSwingMode: string | null;
+  horizontalSwingModes: string[];
+  switches: HomeClimateSwitch[];
+  selects: HomeClimateSelect[];
+  numbers: HomeClimateNumber[];
 };
 export type HomeMediaDevice = {
   id: "tv" | "xbox";

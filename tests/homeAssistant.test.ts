@@ -25,7 +25,26 @@ const config: HomeAssistantConfig = {
       entityIds: ["light.lamp"],
     },
   ],
-  ac: { id: "ac", name: "Klimatyzacja", entityId: "climate.ac" },
+  ac: {
+    id: "ac",
+    name: "Klimatyzacja",
+    entityId: "climate.ac",
+    switches: [{ id: "eco", name: "Eco", entityId: "switch.ac_eco" }],
+    selects: [
+      {
+        id: "sleep-mode",
+        name: "Tryb snu",
+        entityId: "select.ac_sleep_mode",
+      },
+    ],
+    numbers: [
+      {
+        id: "variable-fan-speed",
+        name: "Płynna prędkość nawiewu",
+        entityId: "number.ac_variable_fan_speed",
+      },
+    ],
+  },
   tv: { id: "tv", name: "Telewizor", entityId: "media_player.tv" },
   xbox: { id: "xbox", name: "Xbox", entityId: "media_player.xbox" },
   scenes: [{ id: "movie", name: "Tryb filmowy", entityId: "scene.movie" }],
@@ -98,6 +117,72 @@ describe("Home Assistant status normalization", () => {
     }
   });
 
+  it("parses allowlisted auxiliary AC controls", () => {
+    const variables = [
+      "HA_AC",
+      "HA_AC_SWITCHES_JSON",
+      "HA_AC_SELECTS_JSON",
+      "HA_AC_NUMBERS_JSON",
+    ] as const;
+    const previous = Object.fromEntries(
+      variables.map((name) => [name, process.env[name]]),
+    );
+    process.env.HA_AC = "climate.living_room_szumownica";
+    process.env.HA_AC_SWITCHES_JSON = JSON.stringify({
+      eco: {
+        name: "Eco",
+        entityId: "switch.living_room_szumownica_eco",
+      },
+    });
+    process.env.HA_AC_SELECTS_JSON = JSON.stringify({
+      "sleep-mode": {
+        name: "Tryb snu",
+        entityId: "select.living_room_szumownica_sleep_mode",
+      },
+    });
+    process.env.HA_AC_NUMBERS_JSON = JSON.stringify({
+      "variable-fan-speed": {
+        name: "Płynna prędkość nawiewu",
+        entityId: "number.living_room_szumownica_variable_fan_speed",
+      },
+    });
+
+    try {
+      expect(loadHomeAssistantConfig().ac).toEqual({
+        id: "ac",
+        name: "Klimatyzacja",
+        entityId: "climate.living_room_szumownica",
+        switches: [
+          {
+            id: "eco",
+            name: "Eco",
+            entityId: "switch.living_room_szumownica_eco",
+          },
+        ],
+        selects: [
+          {
+            id: "sleep-mode",
+            name: "Tryb snu",
+            entityId: "select.living_room_szumownica_sleep_mode",
+          },
+        ],
+        numbers: [
+          {
+            id: "variable-fan-speed",
+            name: "Płynna prędkość nawiewu",
+            entityId: "number.living_room_szumownica_variable_fan_speed",
+          },
+        ],
+      });
+    } finally {
+      for (const name of variables) {
+        const value = previous[name];
+        if (value === undefined) delete process.env[name];
+        else process.env[name] = value;
+      }
+    }
+  });
+
   it("normalizes device capabilities without returning entity ids", async () => {
     const client = {
       getStates: async () => [
@@ -134,6 +219,22 @@ describe("Home Assistant status normalization", () => {
           current_temperature: 24,
           temperature: 22,
           hvac_modes: ["off", "cool"],
+          fan_mode: "auto",
+          fan_modes: ["auto", "high"],
+          swing_mode: "swing",
+          swing_modes: ["swing", "top"],
+          swing_horizontal_mode: "forward",
+          swing_horizontal_modes: ["swing", "left", "forward", "right"],
+        }),
+        state("switch.ac_eco", "on"),
+        state("select.ac_sleep_mode", "general", {
+          options: ["off", "general"],
+        }),
+        state("number.ac_variable_fan_speed", "42", {
+          min: 0,
+          max: 100,
+          step: 1,
+          unit_of_measurement: "%",
         }),
         state("media_player.tv", "off", { volume_level: 0.25 }),
         state("media_player.xbox", "on", { media_title: "Forza Horizon" }),
@@ -162,6 +263,28 @@ describe("Home Assistant status normalization", () => {
     expect(snapshot.ac).toMatchObject({
       currentTemperature: 24,
       targetTemperature: 22,
+      horizontalSwingMode: "forward",
+      horizontalSwingModes: ["swing", "left", "forward", "right"],
+      switches: [{ id: "eco", state: "on", available: true }],
+      selects: [
+        {
+          id: "sleep-mode",
+          value: "general",
+          options: ["off", "general"],
+          available: true,
+        },
+      ],
+      numbers: [
+        {
+          id: "variable-fan-speed",
+          value: 42,
+          min: 0,
+          max: 100,
+          step: 1,
+          unit: "%",
+          available: true,
+        },
+      ],
     });
     expect(snapshot.xbox?.mediaTitle).toBe("Forza Horizon");
     expect(JSON.stringify(snapshot)).not.toContain("light.ceiling_1");
@@ -296,6 +419,99 @@ describe("Home Assistant status normalization", () => {
       entity_id: ["light.ceiling_1", "light.ceiling_2", "light.ceiling_3"],
       brightness: 89,
       rgb_color: [255, 184, 92],
+    });
+  });
+
+  it("controls horizontal swing and allowlisted auxiliary AC entities", async () => {
+    const callService = vi.fn(async () => []);
+    const client = {
+      getState: vi.fn(async (entityId: string) => {
+        if (entityId === "climate.ac") {
+          return state(entityId, "cool", {
+            swing_horizontal_modes: ["swing", "left", "forward", "right"],
+          });
+        }
+        if (entityId === "select.ac_sleep_mode") {
+          return state(entityId, "off", { options: ["off", "general"] });
+        }
+        return state(entityId, "42", { min: 0, max: 100, step: 1 });
+      }),
+      callService,
+    } as unknown as HomeAssistantClient;
+    const statement = {
+      bind: vi.fn(),
+      first: vi.fn(async () => ({
+        session_id: "session-1",
+        id: "member-misiek",
+        name: "Misiek",
+        slug: "misiek",
+      })),
+    };
+    statement.bind.mockReturnValue(statement);
+    const env = {
+      DB: { prepare: vi.fn(() => statement) },
+    } as unknown as Env;
+    const handlers = createHomeHandlers(config, client);
+    const request = (path: string, body: Record<string, unknown>) =>
+      new Request(`http://localhost/api/home/ac/${path}`, {
+        method: "POST",
+        headers: {
+          Cookie: "wariatkowo_session=test-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+    const responses = await Promise.all([
+      handlers.acTemperature({
+        request: request("temperature", { temperature: 24 }),
+        env,
+        params: {},
+      }),
+      handlers.acHorizontalSwing({
+        request: request("horizontal-swing", { swing: "left" }),
+        env,
+        params: {},
+      }),
+      handlers.acSwitch({
+        request: request("switches/eco", { enabled: true }),
+        env,
+        params: { id: "eco" },
+      }),
+      handlers.acSelect({
+        request: request("selects/sleep-mode", { option: "general" }),
+        env,
+        params: { id: "sleep-mode" },
+      }),
+      handlers.acNumber({
+        request: request("numbers/variable-fan-speed", { value: 42 }),
+        env,
+        params: { id: "variable-fan-speed" },
+      }),
+    ]);
+
+    expect(responses.map((response) => response.status)).toEqual([
+      200, 200, 200, 200, 200,
+    ]);
+    expect(callService).toHaveBeenCalledWith("climate", "set_temperature", {
+      entity_id: "climate.ac",
+      temperature: 24,
+    });
+    expect(callService).toHaveBeenCalledWith(
+      "climate",
+      "set_swing_horizontal_mode",
+      { entity_id: "climate.ac", swing_horizontal_mode: "left" },
+    );
+    expect(callService).toHaveBeenCalledWith("switch", "turn_on", {
+      entity_id: "switch.ac_eco",
+    });
+    expect(callService).toHaveBeenCalledWith("select", "select_option", {
+      entity_id: "select.ac_sleep_mode",
+      option: "general",
+    });
+    expect(callService).toHaveBeenCalledWith("number", "set_value", {
+      entity_id: "number.ac_variable_fan_speed",
+      value: 42,
     });
   });
 });

@@ -3612,6 +3612,39 @@ a:focus-visible {
   background: rgba(121, 184, 255, 0.2);
 }
 
+.home-climate-power-toggle {
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+  border: 1px solid rgba(55, 119, 166, 0.16);
+  border-radius: 1.25rem;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.home-climate-power-toggle svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.home-climate-power-toggle:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 0.55rem 1.1rem rgba(55, 119, 166, 0.16);
+}
+
+.home-climate-power-toggle:focus-visible {
+  outline: 3px solid rgba(55, 119, 166, 0.25);
+  outline-offset: 3px;
+}
+
+.home-climate-power-toggle--on {
+  background: rgba(121, 184, 255, 0.4);
+  box-shadow: 0 0.45rem 1rem rgba(55, 119, 166, 0.18);
+}
+
 .home-device-card__icon--xbox {
   color: #477c31;
   background: rgba(148, 201, 115, 0.18);
@@ -3757,8 +3790,9 @@ a:focus-visible {
 
 .home-temperature-now {
   display: grid;
-  margin-left: auto;
-  text-align: right;
+  padding-left: 0.8rem;
+  border-left: 1px solid var(--border);
+  text-align: left;
 }
 
 .home-temperature-now strong {
@@ -3776,6 +3810,82 @@ a:focus-visible {
   grid-template-columns: minmax(14rem, 2fr) repeat(3, minmax(9rem, 1fr));
   gap: 0.8rem;
   align-items: end;
+}
+
+.home-control-grid--climate {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.home-control-grid--climate .home-range--temperature {
+  grid-column: 1 / -1;
+}
+
+.home-climate-extras {
+  display: grid;
+  gap: 0.8rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.home-climate-extras h4 {
+  margin: 0;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-size: 1rem;
+}
+
+.home-climate-toggles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.55rem;
+}
+
+.home-climate-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-height: 2.7rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: rgba(121, 184, 255, 0.07);
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease;
+}
+
+.home-climate-toggle:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(55, 119, 166, 0.28);
+}
+
+.home-climate-toggle strong {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.home-climate-toggle--active {
+  border-color: rgba(55, 119, 166, 0.35);
+  background: rgba(121, 184, 255, 0.22);
+}
+
+.home-climate-toggle--active strong {
+  color: #3777a6;
+}
+
+.home-climate-extra-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.8rem;
+  align-items: end;
+}
+
+.home-climate-extra-fields .ghost-button {
+  justify-self: start;
 }
 
 .home-range--temperature .ghost-button {
@@ -3861,6 +3971,9 @@ a:focus-visible {
   .home-device-card--wide,
   .home-range--temperature {
     grid-column: auto;
+  }
+  .home-control-grid--climate .home-range--temperature {
+    grid-column: 1 / -1;
   }
   .home-device-card {
     padding: 1rem;
