@@ -4,7 +4,6 @@ build
 data/
 /public/polaroids/
 /public/profiles/
-/public/quiz/
 tmp/
 coverage
 .vscode/*

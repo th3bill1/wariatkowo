@@ -9,5 +9,4 @@ export const APP_NAV_ITEMS = [
   { label: "Zakupy", path: "/zakupy", icon: "shopping" },
   { label: "Kalendarz", path: "/kalendarz", icon: "calendar" },
   { label: "Dom", path: "/home", icon: "smart-home" },
-  { label: "Quiz", path: "/powrot-do-wariatkowa", icon: "quiz" },
 ] as const;

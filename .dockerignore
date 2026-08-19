@@ -8,7 +8,6 @@ coverage
 data
 public/polaroids
 public/profiles
-public/quiz
 tmp
 .env
 .env.*

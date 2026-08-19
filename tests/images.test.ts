@@ -19,9 +19,7 @@ async function imageRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), "wariatkowo-images-"));
   temporaryDirectories.push(root);
   await Promise.all(
-    ["polaroids", "profiles", "quiz"].map((category) =>
-      mkdir(join(root, category)),
-    ),
+    ["polaroids", "profiles"].map((category) => mkdir(join(root, category))),
   );
   return root;
 }
@@ -78,7 +76,7 @@ describe("runtime image storage", () => {
     const root = await imageRoot();
     await Promise.all([
       writeFile(join(root, "polaroids", "kajaki.jpg"), "polaroid"),
-      writeFile(join(root, "quiz", "parapetówka.jpg"), "quiz"),
+      writeFile(join(root, "profiles", "miśka.jpg"), "profile"),
     ]);
     const app = express();
     app.use(createImageRouter(root));
@@ -99,11 +97,11 @@ describe("runtime image storage", () => {
       expect(listResponse.headers.get("Cache-Control")).toBe("no-store");
 
       const unicodeResponse = await fetch(
-        `${baseUrl}/media/quiz/${encodeURIComponent("parapetówka.jpg")}`,
+        `${baseUrl}/media/profiles/${encodeURIComponent("miśka.jpg")}`,
       );
       expect(unicodeResponse.status).toBe(200);
       expect(unicodeResponse.headers.get("Content-Type")).toBe("image/jpeg");
-      expect(await unicodeResponse.text()).toBe("quiz");
+      expect(await unicodeResponse.text()).toBe("profile");
 
       const traversalResponse = await fetch(
         `${baseUrl}/media/profiles/..%2F..%2Fetc%2Fpasswd.jpg`,

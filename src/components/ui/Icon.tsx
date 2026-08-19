@@ -2,19 +2,13 @@ import {
   House,
   ListChecks,
   ShoppingBasket,
-  Sparkles,
   CalendarDays,
   HousePlug,
   type LucideIcon,
 } from "lucide-react";
 
 export type IconName =
-  | "home"
-  | "tasks"
-  | "shopping"
-  | "quiz"
-  | "calendar"
-  | "smart-home";
+  "home" | "tasks" | "shopping" | "calendar" | "smart-home";
 
 type IconProps = {
   name: IconName;
@@ -25,7 +19,6 @@ const ICONS: Record<IconName, LucideIcon> = {
   home: House,
   tasks: ListChecks,
   shopping: ShoppingBasket,
-  quiz: Sparkles,
   calendar: CalendarDays,
   "smart-home": HousePlug,
 };

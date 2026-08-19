@@ -1,6 +1,6 @@
 # Wariatkowo
 
-Wariatkowo is a private Polish-language household SPA for Misiek and Miśka. Google OpenID Connect authenticates two explicitly allowed accounts and maps them onto those existing household profiles. Tasks, recurring-task statistics, shopping/history, calendar, quiz and the Home Assistant-backed smart-home page continue to use the local Misiek/Miśka identity.
+Wariatkowo is a private Polish-language household SPA for Misiek and Miśka. Google OpenID Connect authenticates two explicitly allowed accounts and maps them onto those existing household profiles. Tasks, recurring-task statistics, shopping/history, calendar and the Home Assistant-backed smart-home page continue to use the local Misiek/Miśka identity.
 
 The supported production runtime is now a single self-hosted Node application:
 
@@ -46,7 +46,6 @@ React talks to the backend through `src/services`; page-level data hooks own loa
 - `/zakupy`, `/zakupy/sklep`, `/zakupy/produkty` — shopping
 - `/kalendarz` — household calendar
 - `/home` — lights, AC and optional household scenes
-- `/powrot-do-wariatkowa` — quiz
 - `/api/health` — unauthenticated container health endpoint
 
 All household and smart-home APIs remain behind the existing HTTP-only Wariatkowo session. Google authentication and Calendar access are handled only by Express; OAuth tokens, the token-encryption key and the client secret are never sent to React. Cloudflare Access may remain as an optional outer boundary, but the application whitelist is the authorization boundary that maps a Google account to Misiek or Miśka.
@@ -147,7 +146,7 @@ Never commit `.env`, `GOOGLE_CLIENT_SECRET`, private household email addresses o
     IMAGES_PATH=./data/images
    ```
 
-3. Create `data/images/polaroids`, `data/images/profiles` and `data/images/quiz`, then copy any development-only personal images there. The entire `data/` directory is ignored by Git.
+3. Create `data/images/polaroids` and `data/images/profiles`, then copy any development-only personal images there. The entire `data/` directory is ignored by Git.
 
 4. Initialize/update the database. Startup does this automatically; it can also be run explicitly:
 
@@ -281,7 +280,7 @@ HA_SCENE_GOOD_NIGHT=script.good_night
 
 More logical scenes can use `HA_SCENES_JSON` in the same shape as the light mapping.
 
-If HA is offline or misconfigured, tasks, shopping, calendar, quiz, dashboard and login continue to work. `/api/home/status` returns a disconnected normalized snapshot; control calls return a controlled `503` response.
+If HA is offline or misconfigured, tasks, shopping, calendar, dashboard and login continue to work. `/api/home/status` returns a disconnected normalized snapshot; control calls return a controlled `503` response.
 
 ## Docker deployment on Debian
 
@@ -306,15 +305,12 @@ If HA is offline or misconfigured, tasks, shopping, calendar, quiz, dashboard an
     curl http://127.0.0.1:3000/api/images/polaroids
     curl --fail --output /dev/null http://127.0.0.1:3000/media/profiles/misiek.jpg
     curl --fail --output /dev/null http://127.0.0.1:3000/media/polaroids/kajaki.jpg
-    curl --fail --output /dev/null http://127.0.0.1:3000/media/quiz/przeprowadzka.jpg
     docker compose exec wariatkowo find /app/data/images -maxdepth 2 -type f -print
    ```
 
 5. Confirm persistence by adding a harmless item, running `docker compose restart wariatkowo`, and checking it remains.
 
 The image is a Node 22 Debian multi-stage build. The final stage contains production packages, bundled server tools, the Vite `dist`, and migrations; neither the database nor personal images are stored in an image layer. Compose mounts `/srv/docker/wariatkowo-data/images` at `/app/data/images` read-only. The service binds `0.0.0.0:3000`, has a healthcheck and restarts unless stopped.
-
-The existing `noc` quiz question is mapped to `quiz/jeki.png`. That file is not in the supplied Debian inventory, so upload it to `/srv/docker/wariatkowo-data/images/quiz/jeki.png` if the question should show its original image; until then the quiz displays its normal missing-image placeholder.
 
 To add a Polaroid later, upload a supported image and refresh the page—no Git commit, frontend build or Docker rebuild is needed:
 
@@ -347,7 +343,7 @@ Without the profile, `cloudflared` is not started. The Google client secret belo
 
 - Do not commit `.env`, databases, D1 exports or access tokens.
 - API SQL uses parameters; migrations are the only reviewed raw SQL scripts.
-- Static SPA serving is limited to `dist`. Personal media is exposed only through `/media/{polaroids|profiles|quiz}/<filename>` with category, extension, traversal and canonical-path checks; the rest of `/app/data` is not web-accessible.
+- Static SPA serving is limited to `dist`. Personal media is exposed only through `/media/{polaroids|profiles}/<filename>` with category, extension, traversal and canonical-path checks; the rest of `/app/data` is not web-accessible.
 - Production errors do not include stack traces or filesystem paths.
 - Google ID tokens are verified with Google's maintained authentication library for signature, issuer, audience and expiration; verified email and stable `sub` are also required.
 - OAuth callback state is constant-time checked, short-lived and bound to the code exchange with PKCE.
@@ -367,7 +363,7 @@ docker compose config
 docker compose build
 ```
 
-Then manually verify both profile photos, Welcome/Dashboard Polaroids, quiz image assignments (including `parapetówka.jpg`), and missing-image fallbacks. Add a temporary Polaroid on the host and confirm that refreshing discovers it without rebuilding. Also verify both allowed Google accounts, a denied account, cancellation and an expired login attempt. Connect each member's Calendar account and verify Google-to-Wariatkowo create/edit/delete plus Wariatkowo-to-Google create/edit/delete on writable and read-only calendars. Verify tasks CRUD/assignment/recurrence/statistics, shopping/history/shop mode, local calendar CRUD, `/home` polling and every configured HA control. Test React deep links directly and test core features once with Home Assistant stopped. Inspect `dist` and confirm personal images, `GOOGLE_CLIENT_SECRET`, `GOOGLE_TOKEN_ENCRYPTION_KEY`, refresh tokens and access tokens are absent from the browser bundle.
+Then manually verify both profile photos, Welcome/Dashboard Polaroids and missing-image fallbacks. Add a temporary Polaroid on the host and confirm that refreshing discovers it without rebuilding. Also verify both allowed Google accounts, a denied account, cancellation and an expired login attempt. Connect each member's Calendar account and verify Google-to-Wariatkowo create/edit/delete plus Wariatkowo-to-Google create/edit/delete on writable and read-only calendars. Verify tasks CRUD/assignment/recurrence/statistics, shopping/history/shop mode, local calendar CRUD, `/home` polling and every configured HA control. Test React deep links directly and test core features once with Home Assistant stopped. Inspect `dist` and confirm personal images, `GOOGLE_CLIENT_SECRET`, `GOOGLE_TOKEN_ENCRYPTION_KEY`, refresh tokens and access tokens are absent from the browser bundle.
 
 ## Current limitations
 

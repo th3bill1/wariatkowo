@@ -3,7 +3,6 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./layouts/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
 import { LoginPage } from "./pages/LoginPage";
-import { ReturnToWariatkowoPage } from "./pages/ReturnToWariatkowoPage";
 import { ShoppingPage } from "./pages/ShoppingPage";
 import { ShoppingProductsPage } from "./pages/ShoppingProductsPage";
 import { ShopModePage } from "./pages/ShopModePage";
@@ -33,10 +32,6 @@ export function App() {
         }
       >
         <Route element={<DashboardPage />} path="/dashboard" />
-        <Route
-          element={<ReturnToWariatkowoPage />}
-          path="/powrot-do-wariatkowa"
-        />
         <Route element={<TasksPage />} path="/zadania" />
         <Route element={<ShoppingPage />} path="/zakupy" />
         <Route element={<ShoppingProductsPage />} path="/zakupy/produkty" />

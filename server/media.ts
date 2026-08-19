@@ -7,7 +7,7 @@ import {
   type Response,
 } from "express";
 
-export const IMAGE_CATEGORIES = ["polaroids", "profiles", "quiz"] as const;
+export const IMAGE_CATEGORIES = ["polaroids", "profiles"] as const;
 export type ImageCategory = (typeof IMAGE_CATEGORIES)[number];
 
 const imageCategories = new Set<string>(IMAGE_CATEGORIES);
