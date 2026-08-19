@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void requestJson<HouseholdMember | null>("/api/auth/session")
       .then(setMember)
+      .catch(() => setMember(null))
       .finally(() => setIsLoading(false));
   }, []);
   const logout = useCallback(async () => {

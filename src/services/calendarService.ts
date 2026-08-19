@@ -5,7 +5,7 @@ import type {
   GoogleCalendarConnectionStatus,
   UpdateCalendarEventInput,
 } from "../../shared/models";
-import { requestJson, requestVoid } from "./http";
+import { requestJson, requestJsonBody, requestVoid } from "./http";
 const endpoint = "/api/calendar";
 export const calendarService = {
   list(from: string, to: string) {
@@ -14,18 +14,10 @@ export const calendarService = {
     );
   },
   create(input: CreateCalendarEventInput) {
-    return requestJson<CalendarEvent>(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    });
+    return requestJsonBody<CalendarEvent>(endpoint, "POST", input);
   },
   update(id: string, input: UpdateCalendarEventInput) {
-    return requestJson<CalendarEvent>(`${endpoint}/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    });
+    return requestJsonBody<CalendarEvent>(`${endpoint}/${id}`, "PATCH", input);
   },
   remove(id: string) {
     return requestVoid(`${endpoint}/${id}`, { method: "DELETE" });

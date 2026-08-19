@@ -2,7 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppShell } from "./layouts/AppShell";
 import { DashboardPage } from "./pages/DashboardPage";
-import { LoginPage } from "../public/profiles/LoginPage";
+import { LoginPage } from "./pages/LoginPage";
 import { ReturnToWariatkowoPage } from "./pages/ReturnToWariatkowoPage";
 import { ShoppingPage } from "./pages/ShoppingPage";
 import { ShoppingProductsPage } from "./pages/ShoppingProductsPage";

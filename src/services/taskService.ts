@@ -3,7 +3,7 @@ import type {
   Task,
   UpdateTaskInput,
 } from "../../shared/models";
-import { requestJson, requestVoid } from "./http";
+import { requestJson, requestJsonBody, requestVoid } from "./http";
 
 const TASKS_ENDPOINT = "/api/tasks";
 
@@ -13,23 +13,11 @@ export const taskService = {
   },
 
   create(input: CreateTaskInput): Promise<Task> {
-    return requestJson<Task>(TASKS_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-    });
+    return requestJsonBody<Task>(TASKS_ENDPOINT, "POST", input);
   },
 
   update(id: string, input: UpdateTaskInput): Promise<Task> {
-    return requestJson<Task>(`${TASKS_ENDPOINT}/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-    });
+    return requestJsonBody<Task>(`${TASKS_ENDPOINT}/${id}`, "PATCH", input);
   },
 
   remove(id: string): Promise<void> {

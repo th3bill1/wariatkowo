@@ -35,6 +35,7 @@ export function error(
   code: ApiErrorCode,
   message: string,
   status = 400,
+  headers?: HeadersInit,
 ): Response {
   const body: ApiErrorResponse = {
     error: {
@@ -45,12 +46,17 @@ export function error(
 
   return new Response(JSON.stringify(body), {
     status,
-    headers: jsonHeaders(),
+    headers: {
+      ...jsonHeaders(),
+      ...headers,
+    },
   });
 }
 
 export function methodNotAllowed(allowedMethods: string[]): Response {
-  return error("METHOD_NOT_ALLOWED", "Metoda nie jest obsługiwana.", 405);
+  return error("METHOD_NOT_ALLOWED", "Metoda nie jest obsługiwana.", 405, {
+    Allow: allowedMethods.join(", "),
+  });
 }
 
 export async function readJsonBody(request: Request): Promise<unknown> {

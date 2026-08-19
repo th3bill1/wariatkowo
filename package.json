@@ -19,7 +19,6 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@fontsource/fredoka": "^5.1.1",
     "@fontsource/nunito": "^5.1.1",
     "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",

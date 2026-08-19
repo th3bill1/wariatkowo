@@ -1,6 +1,6 @@
 import { Navigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../../src/auth/AuthContext";
-import { AppWordmark } from "../../src/components/app/AppWordmark";
+import { useAuth } from "../auth/AuthContext";
+import { AppWordmark } from "../components/app/AppWordmark";
 
 const ERROR_MESSAGES: Readonly<Record<string, string>> = {
   access_denied: "Logowanie przez Google zostało anulowane.",
@@ -20,7 +20,9 @@ export function LoginPage() {
     ? (ERROR_MESSAGES[errorCode] ??
       "Nie udało się zalogować. Spróbuj ponownie.")
     : null;
+
   if (!isLoading && member) return <Navigate replace to="/dashboard" />;
+
   return (
     <main className="login-page">
       <section className="login-card" aria-labelledby="login-title">
@@ -28,9 +30,7 @@ export function LoginPage() {
         <div>
           <p className="page-header__eyebrow">Domowy dostęp</p>
           <h1 id="login-title">Wracamy do Wariatkowa?</h1>
-          <p className="login-card__description">
-            Zaloguj się przez Google.
-          </p>
+          <p className="login-card__description">Zaloguj się przez Google.</p>
         </div>
         {error ? (
           <p className="form-message form-message--error" role="alert">
@@ -43,9 +43,7 @@ export function LoginPage() {
           </span>
           Zaloguj przez Google
         </a>
-        <p className="login-card__note">
-          Dostęp mają wyłącznie konta miśków.
-        </p>
+        <p className="login-card__note">Dostęp mają wyłącznie konta miśków.</p>
       </section>
     </main>
   );

@@ -1,12 +1,10 @@
 import type { HomeStatus } from "../../shared/models";
-import { requestJson } from "./http";
+import { requestJson, requestJsonBody } from "./http";
 
 const post = (path: string, body?: Record<string, unknown>) =>
-  requestJson<{ updated: true }>(`/api/home${path}`, {
-    method: "POST",
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  body
+    ? requestJsonBody<{ updated: true }>(`/api/home${path}`, "POST", body)
+    : requestJson<{ updated: true }>(`/api/home${path}`, { method: "POST" });
 
 export const homeService = {
   status(signal?: AbortSignal) {

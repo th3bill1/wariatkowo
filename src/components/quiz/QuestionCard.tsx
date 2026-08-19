@@ -159,7 +159,6 @@ export function QuestionCard({
             aria-label="Możliwe odpowiedzi"
           >
             {question.answers.map((answer, index) => {
-              const isCorrect = index === question.correctAnswer;
               const isSelected = evaluation.selectedAnswerIndex === index;
               const buttonClassName = getAnswerClassName({
                 index,

@@ -176,7 +176,7 @@ function RevealedWelcomePage() {
           totalChaos={totalChaos}
         />
 
-        <p className="welcome-greeting__subtitle">{subtitle}</p>
+        <p className="welcome-page__subtitle">{subtitle}</p>
 
         <WelcomeCTA isExiting={isExiting} onClick={beginExit} />
 

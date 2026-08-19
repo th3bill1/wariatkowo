@@ -10,61 +10,18 @@ import { useLocation } from "react-router-dom";
 import type { CalendarEvent, CalendarSource } from "../../shared/models";
 import { useAuth } from "../auth/AuthContext";
 import { CalendarEventForm } from "../components/calendar/CalendarEventForm";
+import { CalendarMonthView } from "../components/calendar/CalendarMonthView";
+import { CalendarUpcomingView } from "../components/calendar/CalendarUpcomingView";
 import { AppCard } from "../components/ui/AppCard";
-import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
 import { PageHeader } from "../components/ui/PageHeader";
-import { CALENDAR_COPY, CALENDAR_TYPES } from "../content/calendar";
+import { CALENDAR_COPY } from "../content/calendar";
 import { useCalendar } from "../hooks/useCalendar";
 import { useGoogleCalendarIntegration } from "../hooks/useGoogleCalendarIntegration";
+import { calendarDateKey } from "../utils/calendarView";
 
 const FILTER_STORAGE_KEY = "wariatkowo.calendar.enabled-sources";
-
-const dateKey = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-const eventKey = (event: CalendarEvent) =>
-  event.allDay
-    ? event.startDate.slice(0, 10)
-    : dateKey(new Date(event.startDate));
-const eventTime = (event: CalendarEvent) =>
-  event.allDay
-    ? "Cały dzień"
-    : new Intl.DateTimeFormat("pl-PL", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(new Date(event.startDate));
-const typeMeta = (event: CalendarEvent) =>
-  CALENDAR_TYPES.find((item) => item.value === event.type) ?? CALENDAR_TYPES[0];
-const eventEndKey = (event: CalendarEvent) =>
-  event.endDate
-    ? event.allDay
-      ? event.endDate.slice(0, 10)
-      : dateKey(new Date(event.endDate))
-    : eventKey(event);
-const EVENT_COLORS = [
-  "#7c5caf",
-  "#d15f7a",
-  "#4f8da8",
-  "#4f9467",
-  "#d18b36",
-  "#bd5a68",
-  "#6e83bd",
-  "#a66a45",
-  "#778089",
-];
-const eventColor = (event: CalendarEvent) =>
-  event.calendarColor ??
-  EVENT_COLORS[
-    Math.max(
-      0,
-      CALENDAR_TYPES.findIndex((item) => item.value === event.type),
-    )
-  ];
 
 function storedFilters(sources: CalendarSource[]): Set<string> {
   try {
@@ -120,11 +77,12 @@ export function CalendarPage() {
   const monthStart = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const monthEnd = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
   const today = new Date();
-  const from = mode === "month" ? dateKey(monthStart) : dateKey(today);
+  const from =
+    mode === "month" ? calendarDateKey(monthStart) : calendarDateKey(today);
   const to =
     mode === "month"
-      ? dateKey(monthEnd)
-      : dateKey(
+      ? calendarDateKey(monthEnd)
+      : calendarDateKey(
           new Date(today.getFullYear(), today.getMonth() + 3, today.getDate()),
         );
   const { events, loading, error, refresh, create, update, remove } =
@@ -167,41 +125,6 @@ export function CalendarPage() {
     );
   }, [integration.sources, member]);
 
-  const cells = useMemo(() => {
-    const result: Array<Date | null> = [];
-    const offset = (monthStart.getDay() + 6) % 7;
-    for (let index = 0; index < offset; index += 1) result.push(null);
-    for (let day = 1; day <= monthEnd.getDate(); day += 1) {
-      result.push(new Date(cursor.getFullYear(), cursor.getMonth(), day));
-    }
-    return result;
-  }, [cursor.getFullYear(), cursor.getMonth()]);
-  const grouped = useMemo(() => {
-    const map = new Map<string, CalendarEvent[]>();
-    for (const event of filteredEvents) {
-      const key = eventKey(event);
-      map.set(key, [...(map.get(key) ?? []), event]);
-    }
-    return map;
-  }, [filteredEvents]);
-  const eventsOnDay = (key: string) =>
-    filteredEvents.filter(
-      (event) => eventKey(event) <= key && eventEndKey(event) >= key,
-    );
-  const label = (key: string) => {
-    const delta = Math.round(
-      (Date.parse(`${key}T12:00:00`) -
-        Date.parse(`${dateKey(today)}T12:00:00`)) /
-        86400000,
-    );
-    if (delta === 0) return "Dzisiaj";
-    if (delta === 1) return "Jutro";
-    return new Intl.DateTimeFormat("pl-PL", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    }).format(new Date(`${key}T12:00:00`));
-  };
   const toggleSource = (id: string) => {
     setEnabledSources((current) => {
       const next = new Set(current ?? []);
@@ -528,167 +451,30 @@ export function CalendarPage() {
       {loading ? <LoadingState label="Zaglądamy do kalendarza…" /> : null}
 
       {!loading && mode === "month" ? (
-        <AppCard className="month-card">
-          <div className="month-weekdays">
-            {["Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Nd"].map((day) => (
-              <span key={day}>{day}</span>
-            ))}
-          </div>
-          <div className="month-grid">
-            {cells.map((date, index) => {
-              const key = date ? dateKey(date) : "";
-              const dayEvents = date ? eventsOnDay(key).slice(0, 3) : [];
-              return (
-                <div
-                  className={
-                    !date
-                      ? "month-day month-day--empty"
-                      : key === dateKey(today)
-                        ? "month-day month-day--today"
-                        : "month-day"
-                  }
-                  key={date?.toISOString() ?? `empty-${index}`}
-                >
-                  {date ? (
-                    <>
-                      <strong>{date.getDate()}</strong>
-                      {dayEvents.map((event) => {
-                        const start = eventKey(event);
-                        const end = eventEndKey(event);
-                        const position =
-                          start === end
-                            ? "single"
-                            : key === start
-                              ? "start"
-                              : key === end
-                                ? "end"
-                                : "middle";
-                        return (
-                          <button
-                            className={`month-event month-event--${position}`}
-                            key={event.id}
-                            onClick={() => {
-                              setEditing(event);
-                              setFormOpen(true);
-                            }}
-                            style={
-                              {
-                                "--event-color": eventColor(event),
-                              } as React.CSSProperties
-                            }
-                            title={`${event.title} · ${event.sourceOwnerName} · ${event.calendarName}`}
-                            type="button"
-                          >
-                            <span>
-                              {position === "middle"
-                                ? ""
-                                : typeMeta(event).icon}
-                            </span>
-                            <span className="month-event__title">
-                              {position === "middle" ? "" : event.title}
-                            </span>
-                            {position === "start" ? (
-                              <small>początek</small>
-                            ) : position === "end" ? (
-                              <small>koniec</small>
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        </AppCard>
+        <CalendarMonthView
+          cursor={cursor}
+          events={filteredEvents}
+          onSelect={(event) => {
+            setEditing(event);
+            setFormOpen(true);
+          }}
+          today={today}
+        />
       ) : null}
 
       {!loading && mode === "upcoming" ? (
-        <div className="upcoming-calendar">
-          {filteredEvents.length ? (
-            Array.from(grouped.entries()).map(([key, values]) => (
-              <section key={key}>
-                <h2>{label(key)}</h2>
-                <AppCard>
-                  <ul>
-                    {values.map((event) => (
-                      <li key={event.id}>
-                        <button
-                          className="upcoming-event"
-                          onClick={() => {
-                            setEditing(event);
-                            setFormOpen(true);
-                          }}
-                          type="button"
-                        >
-                          <span className="upcoming-event__time">
-                            {eventTime(event)}
-                          </span>
-                          <span className="upcoming-event__icon">
-                            {typeMeta(event).icon}
-                          </span>
-                          <span>
-                            <strong>{event.title}</strong>
-                            <small>
-                              {event.sourceOwnerName} · {event.calendarName}
-                              {event.location ? ` · ${event.location}` : ""}
-                              {eventEndKey(event) !== eventKey(event)
-                                ? ` · początek ${label(eventKey(event))}, koniec ${label(eventEndKey(event))}`
-                                : ""}
-                            </small>
-                          </span>
-                        </button>
-                        {event.canDelete ? (
-                          <div className="upcoming-event__actions">
-                            {pendingDelete?.id === event.id ? (
-                              <>
-                                <span className="calendar-delete-copy">
-                                  {event.source === "google"
-                                    ? "Usunie także z Google."
-                                    : "Usunąć wydarzenie?"}
-                                </span>
-                                <button
-                                  className="ghost-button"
-                                  onClick={() => setPendingDelete(null)}
-                                  type="button"
-                                >
-                                  Anuluj
-                                </button>
-                              </>
-                            ) : null}
-                            <button
-                              className="ghost-button ghost-button--danger"
-                              onClick={() =>
-                                pendingDelete?.id === event.id
-                                  ? void deleteEvent(event)
-                                  : setPendingDelete(event)
-                              }
-                              type="button"
-                            >
-                              {pendingDelete?.id === event.id ? "Usuń" : "Usuń"}
-                            </button>
-                          </div>
-                        ) : (
-                          <small className="calendar-readonly-label">
-                            Tylko do odczytu
-                          </small>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </AppCard>
-              </section>
-            ))
-          ) : (
-            <AppCard>
-              <EmptyState
-                title="Spokojnie w kalendarzu"
-                description="Podejrzanie spokojnie."
-              />
-            </AppCard>
-          )}
-        </div>
+        <CalendarUpcomingView
+          events={filteredEvents}
+          onCancelDelete={() => setPendingDelete(null)}
+          onConfirmDelete={(event) => void deleteEvent(event)}
+          onRequestDelete={setPendingDelete}
+          onSelect={(event) => {
+            setEditing(event);
+            setFormOpen(true);
+          }}
+          pendingDelete={pendingDelete}
+          today={today}
+        />
       ) : null}
     </div>
   );

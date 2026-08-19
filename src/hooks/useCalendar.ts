@@ -5,6 +5,7 @@ import type {
   UpdateCalendarEventInput,
 } from "../../shared/models";
 import { calendarService } from "../services/calendarService";
+import { useRefreshOnActivity } from "./useRefreshOnActivity";
 export function useCalendar(from: string, to: string) {
   const [events, setEvents] = useState<CalendarEvent[]>([]),
     [loading, setLoading] = useState(true),
@@ -27,20 +28,7 @@ export function useCalendar(from: string, to: string) {
     setLoading(true);
     void load();
   }, [load]);
-  useEffect(() => {
-    const refresh = () => void load(),
-      visible = () => {
-        if (document.visibilityState === "visible") refresh();
-      };
-    window.addEventListener("online", refresh);
-    window.addEventListener("focus", refresh);
-    document.addEventListener("visibilitychange", visible);
-    return () => {
-      window.removeEventListener("online", refresh);
-      window.removeEventListener("focus", refresh);
-      document.removeEventListener("visibilitychange", visible);
-    };
-  }, [load]);
+  useRefreshOnActivity(load);
   const create = useCallback(async (input: CreateCalendarEventInput) => {
     const value = await calendarService.create(input);
     setEvents((current) =>

@@ -4,7 +4,6 @@ import {
   methodNotAllowed,
   readJsonBody,
   success,
-  type Env,
 } from "../_shared/http";
 import type { WebRouteHandler } from "../webHandler";
 import {

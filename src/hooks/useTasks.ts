@@ -5,6 +5,7 @@ import type {
   UpdateTaskInput,
 } from "../../shared/models";
 import { taskService } from "../services/taskService";
+import { useRefreshOnActivity } from "./useRefreshOnActivity";
 
 export type TaskLoadState = "idle" | "loading" | "ready" | "error";
 
@@ -58,20 +59,7 @@ export function useTasks() {
   useEffect(() => {
     void load();
   }, [load]);
-  useEffect(() => {
-    const refresh = () => void load();
-    const visible = () => {
-      if (document.visibilityState === "visible") refresh();
-    };
-    window.addEventListener("focus", refresh);
-    window.addEventListener("online", refresh);
-    document.addEventListener("visibilitychange", visible);
-    return () => {
-      window.removeEventListener("focus", refresh);
-      window.removeEventListener("online", refresh);
-      document.removeEventListener("visibilitychange", visible);
-    };
-  }, [load]);
+  useRefreshOnActivity(load);
 
   const createTask = useCallback(async (input: CreateTaskInput) => {
     const created = await taskService.create(input);

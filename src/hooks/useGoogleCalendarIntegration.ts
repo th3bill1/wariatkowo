@@ -4,6 +4,7 @@ import type {
   GoogleCalendarConnectionStatus,
 } from "../../shared/models";
 import { calendarService } from "../services/calendarService";
+import { useRefreshOnActivity } from "./useRefreshOnActivity";
 
 export function useGoogleCalendarIntegration() {
   const [sources, setSources] = useState<CalendarSource[]>([]);
@@ -35,17 +36,7 @@ export function useGoogleCalendarIntegration() {
   }, []);
 
   useEffect(() => void load(), [load]);
-  useEffect(() => {
-    const visible = () => {
-      if (document.visibilityState === "visible") void load();
-    };
-    window.addEventListener("focus", visible);
-    document.addEventListener("visibilitychange", visible);
-    return () => {
-      window.removeEventListener("focus", visible);
-      document.removeEventListener("visibilitychange", visible);
-    };
-  }, [load]);
+  useRefreshOnActivity(load, { online: false });
 
   const synchronize = useCallback(async () => {
     setWorking(true);

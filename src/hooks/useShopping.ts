@@ -5,6 +5,7 @@ import type {
   UpdateShoppingItemInput,
 } from "../../shared/models";
 import { shoppingService } from "../services/shoppingService";
+import { useRefreshOnActivity } from "./useRefreshOnActivity";
 
 export type ShoppingLoadState = "idle" | "loading" | "ready" | "error";
 
@@ -48,20 +49,7 @@ export function useShopping() {
   useEffect(() => {
     void load();
   }, [load]);
-  useEffect(() => {
-    const refresh = () => void load();
-    const visible = () => {
-      if (document.visibilityState === "visible") refresh();
-    };
-    window.addEventListener("focus", refresh);
-    window.addEventListener("online", refresh);
-    document.addEventListener("visibilitychange", visible);
-    return () => {
-      window.removeEventListener("focus", refresh);
-      window.removeEventListener("online", refresh);
-      document.removeEventListener("visibilitychange", visible);
-    };
-  }, [load]);
+  useRefreshOnActivity(load);
 
   const createItem = useCallback(async (input: CreateShoppingItemInput) => {
     const created = await shoppingService.create(input);

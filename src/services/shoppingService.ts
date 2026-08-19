@@ -3,7 +3,7 @@ import type {
   ShoppingItem,
   UpdateShoppingItemInput,
 } from "../../shared/models";
-import { requestJson, requestVoid } from "./http";
+import { requestJson, requestJsonBody, requestVoid } from "./http";
 
 const SHOPPING_ENDPOINT = "/api/shopping";
 
@@ -13,23 +13,15 @@ export const shoppingService = {
   },
 
   create(input: CreateShoppingItemInput): Promise<ShoppingItem> {
-    return requestJson<ShoppingItem>(SHOPPING_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-    });
+    return requestJsonBody<ShoppingItem>(SHOPPING_ENDPOINT, "POST", input);
   },
 
   update(id: string, input: UpdateShoppingItemInput): Promise<ShoppingItem> {
-    return requestJson<ShoppingItem>(`${SHOPPING_ENDPOINT}/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(input),
-    });
+    return requestJsonBody<ShoppingItem>(
+      `${SHOPPING_ENDPOINT}/${id}`,
+      "PATCH",
+      input,
+    );
   },
 
   remove(id: string): Promise<void> {

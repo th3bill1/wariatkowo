@@ -15,6 +15,22 @@ Browser
 
 For public access, put Cloudflare Access and Cloudflare Tunnel in front of port 3000. Cloudflare Pages, Pages Functions and D1 are not required at runtime.
 
+The repository keeps runtime responsibilities explicit:
+
+```text
+src/                 React pages, components, hooks, services and browser utilities
+server/api/          HTTP endpoint adapters; existing paths are public contracts
+server/auth/         Google identity configuration, OIDC client and identity mapping
+server/googleCalendar/  Calendar API client, encrypted-token data access and sync
+server/homeAssistant/   HA configuration, normalized status and allowlisted controls
+server/db/           SQLite adapter, migration runner and import tools
+shared/              Domain and API types shared by browser and server
+migrations/          Immutable, ordered SQLite schema history
+tests/               Critical auth, data, sync and integration behavior
+```
+
+React talks to the backend through `src/services`; page-level data hooks own loading and refresh behavior. Server endpoints authenticate before calling domain modules. Google Calendar event mutation and synchronization stay server-side so refresh tokens, sync tokens and conflict metadata never cross the browser boundary.
+
 ## Requirements
 
 - Node.js 22 or newer
@@ -29,7 +45,7 @@ For public access, put Cloudflare Access and Cloudflare Tunnel in front of port 
 - `/zadania` — tasks, ownership, recurrence and statistics
 - `/zakupy`, `/zakupy/sklep`, `/zakupy/produkty` — shopping
 - `/kalendarz` — household calendar
-- `/home` — lights, AC, TV, Xbox and optional household scenes
+- `/home` — lights, AC and optional household scenes
 - `/powrot-do-wariatkowa` — quiz
 - `/api/health` — unauthenticated container health endpoint
 
@@ -213,7 +229,7 @@ Rollback is file-based: stop the container, restore the previous `.db` plus matc
 Create a long-lived access token in the Home Assistant user profile and place it only in the server `.env`:
 
 ```env
-HA_URL=http://192.168.0.2:8123
+HA_URL=http://home-assistant.local:8123
 HA_TOKEN=replace-me
 HA_TIMEOUT_MS=5000
 ```
@@ -223,12 +239,12 @@ The token is never exposed through a `VITE_` variable or returned to React. The 
 Configure logical devices with server-side entity IDs:
 
 ```env
-HA_LIGHTS_JSON={"boskie-swiatlo":{"name":"Boskie światło","entityIds":["light.192_168_0_12","light.192_168_0_13","light.192_168_0_14"]},"miskolampa":{"name":"Miśkolampa","entityId":"light.192_168_0_15"}}
-HA_AC=climate.hisense_ac
-HA_TV=media_player.samsung_tv
-HA_TV_REMOTE=remote.samsung_tv
-HA_XBOX=media_player.xbox
-HA_XBOX_REMOTE=remote.xbox
+HA_LIGHTS_JSON={"living-room":{"name":"Salon","entityIds":["light.living_room_1","light.living_room_2"]},"bedroom":{"name":"Sypialnia","entityId":"light.bedroom"}}
+HA_AC=climate.living_room
+HA_TV=media_player.living_room_tv
+HA_TV_REMOTE=remote.living_room_tv
+HA_XBOX=media_player.living_room_xbox
+HA_XBOX_REMOTE=remote.living_room_xbox
 ```
 
 Additional single or grouped logical lights can be supplied without frontend changes:
@@ -241,7 +257,7 @@ Grouped lights are shown as on when any member is on, and every power or setting
 
 ### TV and Xbox power
 
-Wariatkowo calls the configured HA entity's `turn_on`/`turn_off` service. Configure and test Samsung Wake-on-LAN and Xbox wake/power behavior in Home Assistant first. Do not place MAC addresses or a second Wake-on-LAN implementation in Wariatkowo. If a dedicated HA `remote.*` entity is the working power entity, it is used when no media entity is configured.
+The server retains allowlisted TV/Xbox endpoints and normalized status support, while their cards are intentionally hidden from the current `/home` layout. Wariatkowo calls the configured HA entity's `turn_on`/`turn_off` service. Configure and test Samsung Wake-on-LAN and Xbox wake/power behavior in Home Assistant first. Do not place MAC addresses or a second Wake-on-LAN implementation in Wariatkowo. If a dedicated HA `remote.*` entity is the working power entity, it is used when no media entity is configured.
 
 Before deployment, verify the same HA service calls in Developer Tools:
 
