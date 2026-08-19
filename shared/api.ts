@@ -7,6 +7,8 @@ export type ApiErrorCode =
   | "METHOD_NOT_ALLOWED"
   | "SERVICE_UNAVAILABLE"
   | "NOT_CONFIGURED"
+  | "FORBIDDEN"
+  | "CONFLICT"
   | "INTERNAL_ERROR";
 export type ApiSuccessResponse<T> = { data: T };
 export type ApiErrorResponse = {

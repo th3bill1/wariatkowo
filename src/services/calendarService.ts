@@ -1,6 +1,8 @@
 import type {
   CalendarEvent,
+  CalendarSource,
   CreateCalendarEventInput,
+  GoogleCalendarConnectionStatus,
   UpdateCalendarEventInput,
 } from "../../shared/models";
 import { requestJson, requestVoid } from "./http";
@@ -27,5 +29,25 @@ export const calendarService = {
   },
   remove(id: string) {
     return requestVoid(`${endpoint}/${id}`, { method: "DELETE" });
+  },
+  sources() {
+    return requestJson<CalendarSource[]>(`${endpoint}/calendars`);
+  },
+  connectionStatus() {
+    return requestJson<GoogleCalendarConnectionStatus>(
+      "/api/integrations/google-calendar/status",
+    );
+  },
+  synchronize() {
+    return requestJson<{ synchronized: number; errors: number }>(
+      "/api/integrations/google-calendar/sync",
+      { method: "POST" },
+    );
+  },
+  disconnectGoogle() {
+    return requestJson<{ disconnected: boolean }>(
+      "/api/integrations/google-calendar/disconnect",
+      { method: "POST" },
+    );
   },
 };

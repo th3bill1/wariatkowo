@@ -3,6 +3,7 @@ import {
   isCalendarEventType,
   parseCalendarDate,
 } from "../server/_shared/calendar";
+import { googleEventDates } from "../server/googleCalendar/sync";
 describe("calendar rules", () => {
   it("accepts supported event types", () => {
     expect(isCalendarEventType("birthday")).toBe(true);
@@ -16,5 +17,18 @@ describe("calendar rules", () => {
     expect(parseCalendarDate("2026-08-12T18:00:00+02:00", false)).toBe(
       "2026-08-12T16:00:00.000Z",
     );
+  });
+  it("converts Google's exclusive all-day end date to an inclusive UI range", () => {
+    expect(
+      googleEventDates({
+        id: "all-day",
+        start: { date: "2026-08-20" },
+        end: { date: "2026-08-21" },
+      }),
+    ).toMatchObject({
+      start: "2026-08-20",
+      end: "2026-08-20",
+      allDay: true,
+    });
   });
 });

@@ -12,6 +12,12 @@ import { onRequest as authLogout } from "./api/auth/logout";
 import { onRequest as authSession } from "./api/auth/session";
 import { onRequest as calendarIndex } from "./api/calendar/index";
 import { onRequest as calendarItem } from "./api/calendar/[id]";
+import { onRequest as calendarSources } from "./api/calendar/calendars";
+import { onRequest as googleCalendarConnect } from "./api/integrations/googleCalendar/connect";
+import { onRequest as googleCalendarCallback } from "./api/integrations/googleCalendar/callback";
+import { onRequest as googleCalendarStatus } from "./api/integrations/googleCalendar/status";
+import { onRequest as googleCalendarSync } from "./api/integrations/googleCalendar/sync";
+import { onRequest as googleCalendarDisconnect } from "./api/integrations/googleCalendar/disconnect";
 import { onRequest as shoppingIndex } from "./api/shopping/index";
 import { onRequest as shoppingItem } from "./api/shopping/[id]";
 import { onRequest as shoppingCompleted } from "./api/shopping/completed";
@@ -30,6 +36,9 @@ import { loadHomeAssistantConfig } from "./homeAssistant/config";
 import { createHomeHandlers } from "./homeAssistant/routes";
 import { loadGoogleAuthConfig } from "./auth/googleConfig";
 import { GoogleOidcClient } from "./auth/googleClient";
+import { loadGoogleCalendarConfig } from "./googleCalendar/config";
+import { GoogleCalendarHttpClient } from "./googleCalendar/client";
+import { AesGcmTokenCipher } from "./googleCalendar/tokenCipher";
 
 function booleanEnvironment(name: string, fallback: boolean): boolean {
   const value = process.env[name]?.trim().toLowerCase();
@@ -44,6 +53,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65_535) {
 }
 
 const googleConfig = loadGoogleAuthConfig();
+const googleCalendarConfig = loadGoogleCalendarConfig(googleConfig);
 const database = openDatabase();
 const env: Env = {
   DB: database,
@@ -54,6 +64,11 @@ const env: Env = {
   GOOGLE_AUTH: {
     config: googleConfig,
     client: new GoogleOidcClient(googleConfig),
+  },
+  GOOGLE_CALENDAR: {
+    config: googleCalendarConfig,
+    client: new GoogleCalendarHttpClient(googleCalendarConfig),
+    tokenCipher: new AesGcmTokenCipher(process.env.GOOGLE_TOKEN_ENCRYPTION_KEY),
   },
 };
 const app = express();
@@ -86,6 +101,11 @@ route("/api/auth/session", authSession);
 route("/api/auth/google", authGoogle);
 route("/api/auth/google/callback", authGoogleCallback);
 route("/api/auth/logout", authLogout);
+route("/api/integrations/google-calendar/status", googleCalendarStatus);
+route("/api/integrations/google-calendar/connect", googleCalendarConnect);
+route("/api/integrations/google-calendar/callback", googleCalendarCallback);
+route("/api/integrations/google-calendar/sync", googleCalendarSync);
+route("/api/integrations/google-calendar/disconnect", googleCalendarDisconnect);
 route("/api/tasks", tasksIndex);
 route("/api/tasks/:id", taskItem);
 route("/api/task-stats", taskStats);
@@ -96,6 +116,7 @@ route("/api/shopping/products/:id", shoppingProduct);
 route("/api/shopping", shoppingIndex);
 route("/api/shopping/:id", shoppingItem);
 route("/api/calendar", calendarIndex);
+route("/api/calendar/calendars", calendarSources);
 route("/api/calendar/:id", calendarItem);
 route("/api/home/status", homeHandlers.status);
 route("/api/home/lights/:id/on", homeHandlers.lightOn);

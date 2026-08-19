@@ -5,11 +5,13 @@ import type {
 } from "../../shared/api";
 import type { DatabaseClient } from "../db/types";
 import type { GoogleAuthDependencies } from "../auth/googleClient";
+import type { GoogleCalendarDependencies } from "../googleCalendar/dependencies";
 
 export interface Env {
   DB: DatabaseClient;
   COOKIE_SECURE?: boolean;
   GOOGLE_AUTH?: GoogleAuthDependencies;
+  GOOGLE_CALENDAR?: GoogleCalendarDependencies;
 }
 
 function jsonHeaders(): HeadersInit {

@@ -109,6 +109,26 @@ export type CalendarEvent = {
   createdByName: string;
   createdAt: string;
   updatedAt: string;
+  source: "local" | "google";
+  calendarSourceId: string;
+  calendarName: string;
+  sourceOwnerName: string;
+  calendarColor: string | null;
+  location: string | null;
+  organizer: { email?: string; displayName?: string } | null;
+  attendees: Array<{
+    email?: string;
+    displayName?: string;
+    responseStatus?: string;
+    self?: boolean;
+  }>;
+  htmlLink: string | null;
+  hangoutLink: string | null;
+  timeZone: string | null;
+  eventType: string | null;
+  recurring: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
 };
 export type CreateCalendarEventInput = {
   title: string;
@@ -117,8 +137,34 @@ export type CreateCalendarEventInput = {
   startDate: string;
   endDate?: string | null;
   allDay?: boolean;
+  calendarSourceId?: string;
 };
 export type UpdateCalendarEventInput = Partial<CreateCalendarEventInput>;
+
+export type CalendarSource = {
+  id: string;
+  kind: "local" | "google";
+  name: string;
+  ownerNames: string[];
+  ownerLabel: string;
+  accessRole: string | null;
+  writable: boolean;
+  primary: boolean;
+  selected: boolean;
+  hidden: boolean;
+  backgroundColor: string | null;
+  foregroundColor: string | null;
+  syncError: string | null;
+};
+
+export type GoogleCalendarConnectionStatus = {
+  connected: boolean;
+  status: "disconnected" | "connected" | "needs_reconnect" | "error";
+  email: string | null;
+  calendarCount: number;
+  lastSyncAt: string | null;
+  message: string | null;
+};
 
 export type HomeDeviceState = "on" | "off" | "unavailable" | string;
 export type HomeLight = {

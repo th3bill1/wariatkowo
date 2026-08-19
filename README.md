@@ -9,6 +9,7 @@ Browser
   -> Wariatkowo Express :3000
        -> React/Vite static bundle
        -> /api/auth, tasks, shopping, calendar -> local SQLite
+       -> Google Calendar API (server-side OAuth tokens only)
        -> /api/home                         -> Home Assistant
 ```
 
@@ -32,40 +33,78 @@ For public access, put Cloudflare Access and Cloudflare Tunnel in front of port 
 - `/powrot-do-wariatkowa` — quiz
 - `/api/health` — unauthenticated container health endpoint
 
-All household and smart-home APIs remain behind the existing HTTP-only Wariatkowo session. Google authentication is handled only by Express; OAuth tokens and the client secret are never sent to React. Cloudflare Access may remain as an optional outer boundary, but the application whitelist is the authorization boundary that maps a Google account to Misiek or Miśka.
+All household and smart-home APIs remain behind the existing HTTP-only Wariatkowo session. Google authentication and Calendar access are handled only by Express; OAuth tokens, the token-encryption key and the client secret are never sent to React. Cloudflare Access may remain as an optional outer boundary, but the application whitelist is the authorization boundary that maps a Google account to Misiek or Miśka.
 
-## Google OAuth setup
+## Google OAuth and Calendar setup
+
+Google login working does **not** mean Google Calendar access is configured. Normal login remains identity-only (`openid`, `email`, `profile`). Calendar access uses a separate incremental authorization that each member starts once from `/kalendarz`.
 
 The flow follows Google's [OAuth 2.0 web-server guide](https://developers.google.com/identity/protocols/oauth2/web-server) and [OpenID Connect reference](https://developers.google.com/identity/openid-connect/reference).
 
-1. In Google Cloud, configure the OAuth consent screen for the intended private accounts.
-2. Create an OAuth 2.0 client with application type **Web application**.
-3. Add the exact production authorized redirect URI:
+1. In the existing Google Cloud project, enable **Google Calendar API**.
+2. Configure the OAuth consent screen for the intended private accounts and add these Calendar scopes:
+
+   ```text
+   https://www.googleapis.com/auth/calendar.calendarlist.readonly
+   https://www.googleapis.com/auth/calendar.events
+   ```
+
+   Wariatkowo deliberately does not request the broader `https://www.googleapis.com/auth/calendar` scope.
+
+3. Reuse the existing OAuth 2.0 client with application type **Web application**. Keep the identity login redirect URI:
 
    ```text
    https://wariatkowo.wwojcik.com/api/auth/google/callback
    ```
 
-4. Add a separate local redirect URI when developing locally. With the Vite proxy, use:
+4. Add the separate production Calendar redirect URI to the same Web OAuth client:
+
+   ```text
+   https://wariatkowo.wwojcik.com/api/integrations/google-calendar/callback
+   ```
+
+5. Add separate local redirect URIs when developing locally. With the Vite proxy, use:
 
    ```text
    http://localhost:5173/api/auth/google/callback
+   http://localhost:5173/api/integrations/google-calendar/callback
    ```
 
-   When running the built Express application directly on port 3000, use `http://localhost:3000/api/auth/google/callback` instead.
+   When running the built Express application directly on port 3000, use:
 
-5. Put the server-side values in `.env`:
+   ```text
+   http://localhost:3000/api/auth/google/callback
+   http://localhost:3000/api/integrations/google-calendar/callback
+   ```
+
+6. Generate a 32-byte refresh-token encryption key on a trusted machine:
+
+   ```bash
+   node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
+   ```
+
+7. Put the server-side values in `.env`:
 
    ```env
    GOOGLE_CLIENT_ID=replace-with-google-client-id.apps.googleusercontent.com
    GOOGLE_CLIENT_SECRET=replace-with-google-client-secret
    GOOGLE_REDIRECT_URI=https://wariatkowo.wwojcik.com/api/auth/google/callback
+   GOOGLE_CALENDAR_REDIRECT_URI=https://wariatkowo.wwojcik.com/api/integrations/google-calendar/callback
+   GOOGLE_TOKEN_ENCRYPTION_KEY=replace-with-generated-base64url-key
    GOOGLE_ALLOWED_USERS_JSON={"first-private-account@example.com":"misiek","second-private-account@example.com":"miska"}
    ```
 
 `GOOGLE_ALLOWED_USERS_JSON` must contain exactly one account for each existing profile. Email keys are normalized to lowercase; values must be `misiek` or `miska`. On first successful login, the member row stores the verified email and Google's stable `sub`. Later logins prefer `sub`; a mismatch between the stored identity and current whitelist fails closed and is logged server-side.
 
-The server requests only `openid`, `email` and `profile`. It uses Authorization Code flow with PKCE and a short-lived HTTP-only state cookie. No Google Calendar scope or integration is included.
+Normal login requests only `openid`, `email` and `profile`. It uses Authorization Code flow with PKCE and its own short-lived HTTP-only state cookie. The explicit Calendar connection flow separately requests identity plus the two narrow Calendar scopes, offline access and renewed consent so a server-side refresh token is returned. Calendar state is one-time, short-lived, bound to the current application session/member, and separate from login state. The returned stable Google `sub` and email must match the identity already attached to that member.
+
+Refresh tokens are encrypted with AES-256-GCM before SQLite persistence. The server refuses to start when `GOOGLE_TOKEN_ENCRYPTION_KEY` is missing or does not decode to exactly 32 bytes. Rotating this key requires reconnecting both Calendar accounts unless stored tokens are re-encrypted first.
+
+After deployment, Misiek and Miśka must each log into their own profile, open `/kalendarz`, and click **Połącz Kalendarz Google**. Connecting one member does not authorize the other member's account.
+
+Wariatkowo imports every calendar returned by each account's CalendarList, deduplicates shared calendars by Google `calendarId`, and chooses the account with the strongest access for canonical synchronization. Event and calendar-list synchronization is incremental, paginated, and automatically falls back to a full sync after Google invalidates a sync token. It runs immediately after connection, when stale calendar data is opened, on browser focus, and through the **Synchronizuj** action. Push notifications are intentionally not used in this version.
+
+Creating an event in a writable Google destination calls Google before caching it locally. Edits use partial Google updates with an `etag` precondition, and deletion calls Google before removing the cache row. Reader/free-busy calendars and locked or unsupported recurring/special events remain view-only. Disconnecting removes the member's encrypted token and active access without deleting anything from Google; a shared calendar remains available when the other connected member can still access it.
 
 Never commit `.env`, `GOOGLE_CLIENT_SECRET`, private household email addresses or downloaded OAuth credentials. No Google value belongs in a `VITE_*` variable.
 
@@ -84,6 +123,8 @@ Never commit `.env`, `GOOGLE_CLIENT_SECRET`, private household email addresses o
    GOOGLE_CLIENT_ID=replace-with-local-client-id.apps.googleusercontent.com
    GOOGLE_CLIENT_SECRET=replace-with-local-client-secret
    GOOGLE_REDIRECT_URI=http://localhost:5173/api/auth/google/callback
+   GOOGLE_CALENDAR_REDIRECT_URI=http://localhost:5173/api/integrations/google-calendar/callback
+   GOOGLE_TOKEN_ENCRYPTION_KEY=replace-with-generated-base64url-key
    GOOGLE_ALLOWED_USERS_JSON={"first-private-account@example.com":"misiek","second-private-account@example.com":"miska"}
    DATABASE_PATH=./data/wariatkowo.db
    MIGRATIONS_PATH=./migrations
@@ -155,7 +196,7 @@ The import is explicit and refuses to write into a non-empty SQLite database.
    DATABASE_PATH=./data/wariatkowo-imported.db npm run db:import -- ./d1-export.sql
    ```
 
-The importer preserves IDs and foreign-key relationships, verifies the required schema, records the four legacy migrations, applies the Google identity migration, and prints row counts for household members, tasks and completions, shopping/history, and calendar events. Compare those counts with D1 before switching `DATABASE_PATH`. Log in with both allowed Google accounts and manually verify recurrence, statistics, shopping history and calendar ranges.
+The importer preserves IDs and foreign-key relationships, verifies the required schema, records the four legacy migrations, applies all newer Google identity and Calendar migrations, and prints row counts for household members, tasks and completions, shopping/history, and local calendar events. Compare those counts with D1 before switching `DATABASE_PATH`. Log in with both allowed Google accounts and manually verify recurrence, statistics, shopping history and calendar ranges.
 
 For a container-based import:
 
@@ -226,7 +267,7 @@ If HA is offline or misconfigured, tasks, shopping, calendar, quiz, dashboard an
 ## Docker deployment on Debian
 
 1. Copy the repository to the server.
-2. Copy `.env.example` to `.env`, fill the Google OAuth, whitelist and HA/entity values, and keep it readable only by the deployment account. Production must use `GOOGLE_REDIRECT_URI=https://wariatkowo.wwojcik.com/api/auth/google/callback` and `COOKIE_SECURE=true`.
+2. Copy `.env.example` to `.env`, fill the Google OAuth, Calendar, whitelist and HA/entity values, and keep it readable only by the deployment account. Production must use both exact production Google redirect URIs and `COOKIE_SECURE=true`.
 3. Prepare the bind-mounted directory for the unprivileged container user, then leave `DATABASE_PATH=./data/wariatkowo.db`:
 
    ```bash
@@ -276,6 +317,7 @@ Without the profile, `cloudflared` is not started. The Google client secret belo
 - Production errors do not include stack traces or filesystem paths.
 - Google ID tokens are verified with Google's maintained authentication library for signature, issuer, audience and expiration; verified email and stable `sub` are also required.
 - OAuth callback state is constant-time checked, short-lived and bound to the code exchange with PKCE.
+- Calendar OAuth state is separately stored as a one-time hash and bound to the initiating session/member; Calendar tokens are encrypted at rest with authenticated AES-GCM.
 - Only exact configured emails can create a local session; unique database indexes prevent one Google identity from being attached to multiple profiles.
 - `HA_TOKEN` stays server-side and HA operations use configured logical IDs.
 
@@ -291,7 +333,7 @@ docker compose config
 docker compose build
 ```
 
-Then manually verify both allowed Google accounts, a denied account, cancellation and an expired login attempt. Verify tasks CRUD/assignment/recurrence/statistics, shopping/history/shop mode, calendar CRUD, quiz, `/home` polling and every configured HA control. Test React deep links directly and test core features once with Home Assistant stopped. Inspect `dist` and confirm neither `GOOGLE_CLIENT_SECRET` nor private OAuth credentials appear in the browser bundle.
+Then manually verify both allowed Google accounts, a denied account, cancellation and an expired login attempt. Connect each member's Calendar account and verify Google-to-Wariatkowo create/edit/delete plus Wariatkowo-to-Google create/edit/delete on writable and read-only calendars. Verify tasks CRUD/assignment/recurrence/statistics, shopping/history/shop mode, local calendar CRUD, quiz, `/home` polling and every configured HA control. Test React deep links directly and test core features once with Home Assistant stopped. Inspect `dist` and confirm `GOOGLE_CLIENT_SECRET`, `GOOGLE_TOKEN_ENCRYPTION_KEY`, refresh tokens and access tokens are absent from the browser bundle.
 
 ## Current limitations
 
