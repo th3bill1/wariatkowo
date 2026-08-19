@@ -47,9 +47,20 @@ async function sendWebResponse(
   expressResponse: ExpressResponse,
 ): Promise<void> {
   expressResponse.status(response.status);
-  response.headers.forEach((value, name) =>
-    expressResponse.setHeader(name, value),
-  );
+  const headersWithCookies = response.headers as Headers & {
+    getSetCookie?: () => string[];
+  };
+  response.headers.forEach((value, name) => {
+    if (name.toLowerCase() !== "set-cookie") {
+      expressResponse.setHeader(name, value);
+    }
+  });
+  const cookies = headersWithCookies.getSetCookie?.() ?? [];
+  if (cookies.length) expressResponse.setHeader("Set-Cookie", cookies);
+  else {
+    const cookie = response.headers.get("Set-Cookie");
+    if (cookie) expressResponse.setHeader("Set-Cookie", cookie);
+  }
   if (response.status === 204 || response.body === null) {
     expressResponse.end();
     return;

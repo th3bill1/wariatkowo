@@ -1,6 +1,6 @@
 # Wariatkowo
 
-Wariatkowo is a private Polish-language household SPA for Misiek and Miśka. It keeps the existing welcome experience, profiles/PINs, tasks, recurring-task statistics, shopping/history, calendar and quiz, and adds a Home Assistant-backed smart-home page.
+Wariatkowo is a private Polish-language household SPA for Misiek and Miśka. Google OpenID Connect authenticates two explicitly allowed accounts and maps them onto those existing household profiles. Tasks, recurring-task statistics, shopping/history, calendar, quiz and the Home Assistant-backed smart-home page continue to use the local Misiek/Miśka identity.
 
 The supported production runtime is now a single self-hosted Node application:
 
@@ -32,7 +32,42 @@ For public access, put Cloudflare Access and Cloudflare Tunnel in front of port 
 - `/powrot-do-wariatkowa` — quiz
 - `/api/health` — unauthenticated container health endpoint
 
-All household and smart-home APIs remain behind the existing Misiek/Miśka PIN session. Cloudflare Access is a separate outer boundary: it decides who can reach the site, while the PIN chooses the active household profile.
+All household and smart-home APIs remain behind the existing HTTP-only Wariatkowo session. Google authentication is handled only by Express; OAuth tokens and the client secret are never sent to React. Cloudflare Access may remain as an optional outer boundary, but the application whitelist is the authorization boundary that maps a Google account to Misiek or Miśka.
+
+## Google OAuth setup
+
+The flow follows Google's [OAuth 2.0 web-server guide](https://developers.google.com/identity/protocols/oauth2/web-server) and [OpenID Connect reference](https://developers.google.com/identity/openid-connect/reference).
+
+1. In Google Cloud, configure the OAuth consent screen for the intended private accounts.
+2. Create an OAuth 2.0 client with application type **Web application**.
+3. Add the exact production authorized redirect URI:
+
+   ```text
+   https://wariatkowo.wwojcik.com/api/auth/google/callback
+   ```
+
+4. Add a separate local redirect URI when developing locally. With the Vite proxy, use:
+
+   ```text
+   http://localhost:5173/api/auth/google/callback
+   ```
+
+   When running the built Express application directly on port 3000, use `http://localhost:3000/api/auth/google/callback` instead.
+
+5. Put the server-side values in `.env`:
+
+   ```env
+   GOOGLE_CLIENT_ID=replace-with-google-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=replace-with-google-client-secret
+   GOOGLE_REDIRECT_URI=https://wariatkowo.wwojcik.com/api/auth/google/callback
+   GOOGLE_ALLOWED_USERS_JSON={"first-private-account@example.com":"misiek","second-private-account@example.com":"miska"}
+   ```
+
+`GOOGLE_ALLOWED_USERS_JSON` must contain exactly one account for each existing profile. Email keys are normalized to lowercase; values must be `misiek` or `miska`. On first successful login, the member row stores the verified email and Google's stable `sub`. Later logins prefer `sub`; a mismatch between the stored identity and current whitelist fails closed and is logged server-side.
+
+The server requests only `openid`, `email` and `profile`. It uses Authorization Code flow with PKCE and a short-lived HTTP-only state cookie. No Google Calendar scope or integration is included.
+
+Never commit `.env`, `GOOGLE_CLIENT_SECRET`, private household email addresses or downloaded OAuth credentials. No Google value belongs in a `VITE_*` variable.
 
 ## Local development
 
@@ -42,10 +77,14 @@ All household and smart-home APIs remain behind the existing Misiek/Miśka PIN s
    npm install
    ```
 
-2. Copy `.env.example` to `.env`. For plain HTTP development, set:
+2. Copy `.env.example` to `.env`. Create a separate local Google OAuth client configuration (or add the local redirect URI to the web client), then set:
 
    ```env
    COOKIE_SECURE=false
+   GOOGLE_CLIENT_ID=replace-with-local-client-id.apps.googleusercontent.com
+   GOOGLE_CLIENT_SECRET=replace-with-local-client-secret
+   GOOGLE_REDIRECT_URI=http://localhost:5173/api/auth/google/callback
+   GOOGLE_ALLOWED_USERS_JSON={"first-private-account@example.com":"misiek","second-private-account@example.com":"miska"}
    DATABASE_PATH=./data/wariatkowo.db
    MIGRATIONS_PATH=./migrations
    ```
@@ -56,24 +95,7 @@ All household and smart-home APIs remain behind the existing Misiek/Miśka PIN s
    npm run db:migrate
    ```
 
-4. Set the two four-digit PINs without committing them:
-
-   PowerShell:
-
-   ```powershell
-   $env:WARIATKOWO_MISIEK_PIN='1234'
-   $env:WARIATKOWO_MISKA_PIN='5678'
-   npm run setup:pins
-   Remove-Item Env:WARIATKOWO_MISIEK_PIN,Env:WARIATKOWO_MISKA_PIN
-   ```
-
-   Bash:
-
-   ```bash
-   WARIATKOWO_MISIEK_PIN=1234 WARIATKOWO_MISKA_PIN=5678 npm run setup:pins
-   ```
-
-5. Start the Vite and API development servers together:
+4. Start the Vite and API development servers together:
 
    ```bash
    npm run dev
@@ -117,7 +139,7 @@ The import is explicit and refuses to write into a non-empty SQLite database.
    npx wrangler d1 export wariatkowo-db --remote --output=d1-export.sql
    ```
 
-3. Review the SQL file. Do not commit it; it contains household data and PIN/session hashes.
+3. Review the SQL file. Do not commit it; it contains private household data and session hashes.
 4. Import it into a new path:
 
    PowerShell:
@@ -133,7 +155,7 @@ The import is explicit and refuses to write into a non-empty SQLite database.
    DATABASE_PATH=./data/wariatkowo-imported.db npm run db:import -- ./d1-export.sql
    ```
 
-The importer preserves IDs, foreign-key relationships and existing PIN hashes, verifies the required schema, records the four repository migrations, and prints row counts for household members, tasks and completions, shopping/history, and calendar events. Compare those counts with D1 before switching `DATABASE_PATH`. Log in as both profiles and manually verify recurrence, statistics, shopping history and calendar ranges.
+The importer preserves IDs and foreign-key relationships, verifies the required schema, records the four legacy migrations, applies the Google identity migration, and prints row counts for household members, tasks and completions, shopping/history, and calendar events. Compare those counts with D1 before switching `DATABASE_PATH`. Log in with both allowed Google accounts and manually verify recurrence, statistics, shopping history and calendar ranges.
 
 For a container-based import:
 
@@ -204,7 +226,7 @@ If HA is offline or misconfigured, tasks, shopping, calendar, quiz, dashboard an
 ## Docker deployment on Debian
 
 1. Copy the repository to the server.
-2. Copy `.env.example` to `.env`, fill the HA/entity values, and keep it readable only by the deployment account.
+2. Copy `.env.example` to `.env`, fill the Google OAuth, whitelist and HA/entity values, and keep it readable only by the deployment account. Production must use `GOOGLE_REDIRECT_URI=https://wariatkowo.wwojcik.com/api/auth/google/callback` and `COOKIE_SECURE=true`.
 3. Prepare the bind-mounted directory for the unprivileged container user, then leave `DATABASE_PATH=./data/wariatkowo.db`:
 
    ```bash
@@ -221,20 +243,11 @@ If HA is offline or misconfigured, tasks, shopping, calendar, quiz, dashboard an
    curl http://127.0.0.1:3000/api/health
    ```
 
-5. Initialize/change PINs if they were not imported:
-
-   ```bash
-   docker compose run --rm \
-     -e WARIATKOWO_MISIEK_PIN=1234 \
-     -e WARIATKOWO_MISKA_PIN=5678 \
-     wariatkowo node build/server/setup-pins.js
-   ```
-
-6. Confirm persistence by adding a harmless item, running `docker compose restart wariatkowo`, and checking it remains.
+5. Confirm persistence by adding a harmless item, running `docker compose restart wariatkowo`, and checking it remains.
 
 The image is a Node 22 Debian multi-stage build. The final stage contains production packages, bundled server tools, the Vite `dist`, and migrations; the database is not stored in an image layer. The service binds `0.0.0.0:3000`, has a healthcheck and restarts unless stopped.
 
-For direct LAN HTTP access set `COOKIE_SECURE=false`. For the HTTPS Cloudflare hostname set `COOKIE_SECURE=true` so the profile session cookie stays secure.
+For direct LAN HTTP development set `COOKIE_SECURE=false`. For the HTTPS Cloudflare hostname set `COOKIE_SECURE=true` so both the OAuth state cookie and household session cookie stay secure. Express trusts the first proxy hop, while the OAuth redirect remains the exact configured public URI rather than being inferred from forwarded headers.
 
 ## Cloudflare Tunnel and Access
 
@@ -244,10 +257,8 @@ Manual setup:
 
 1. Create a Cloudflare Tunnel in the dashboard.
 2. Add a public hostname whose service/origin is `http://wariatkowo:3000` when using the optional Compose service, or the server's reachable port 3000 for an externally managed tunnel.
-3. Create a Cloudflare Access self-hosted application for that exact hostname.
-4. Configure Google as the Access identity provider.
-5. Add an allow policy containing only the exact household email addresses.
-6. Add a deny-everyone-else policy and test in a private browser window.
+3. Optionally keep a Cloudflare Access self-hosted application as an additional outer boundary for that hostname. Its allow policy should not be treated as a replacement for `GOOGLE_ALLOWED_USERS_JSON`.
+4. Ensure the tunnel forwards the callback path unchanged and test both approved accounts plus an unknown account in a private browser window.
 
 To run the optional Compose tunnel profile, set `CLOUDFLARE_TUNNEL_TOKEN` in `.env`, then:
 
@@ -255,7 +266,7 @@ To run the optional Compose tunnel profile, set `CLOUDFLARE_TUNNEL_TOKEN` in `.e
 docker compose --profile tunnel up -d
 ```
 
-Without the profile, `cloudflared` is not started. Google OAuth credentials do not belong in React or Node; Cloudflare Access owns public authentication.
+Without the profile, `cloudflared` is not started. The Google client secret belongs only in the Node server environment; it must never be placed in React, a `VITE_*` variable, Compose YAML or the image.
 
 ## Security notes
 
@@ -263,7 +274,9 @@ Without the profile, `cloudflared` is not started. Google OAuth credentials do n
 - API SQL uses parameters; migrations are the only reviewed raw SQL scripts.
 - Static serving is limited to `dist`, so `/app/data` is not web-accessible.
 - Production errors do not include stack traces or filesystem paths.
-- PIN attempts retain the existing five-failures/15-minute throttle.
+- Google ID tokens are verified with Google's maintained authentication library for signature, issuer, audience and expiration; verified email and stable `sub` are also required.
+- OAuth callback state is constant-time checked, short-lived and bound to the code exchange with PKCE.
+- Only exact configured emails can create a local session; unique database indexes prevent one Google identity from being attached to multiple profiles.
 - `HA_TOKEN` stays server-side and HA operations use configured logical IDs.
 
 ## Verification checklist
@@ -278,11 +291,11 @@ docker compose config
 docker compose build
 ```
 
-Then manually verify both profiles, tasks CRUD/assignment/recurrence/statistics, shopping/history/shop mode, calendar CRUD, quiz, `/home` polling and every configured HA control. Test React deep links directly and test core features once with Home Assistant stopped.
+Then manually verify both allowed Google accounts, a denied account, cancellation and an expired login attempt. Verify tasks CRUD/assignment/recurrence/statistics, shopping/history/shop mode, calendar CRUD, quiz, `/home` polling and every configured HA control. Test React deep links directly and test core features once with Home Assistant stopped. Inspect `dist` and confirm neither `GOOGLE_CLIENT_SECRET` nor private OAuth credentials appear in the browser bundle.
 
 ## Current limitations
 
 - Smart-home state uses four-second polling; no SSE/WebSocket transport is implemented yet.
 - Device features depend on attributes exposed by the configured HA integration; unavailable capabilities are hidden.
 - TV remote commands use a small server-side allowlist.
-- Cloudflare Access identity headers are not used by application authorization; the household PIN remains the inner profile boundary.
+- Cloudflare Access identity headers are not used by application authorization; the Google whitelist plus local Wariatkowo session remain the application boundary.

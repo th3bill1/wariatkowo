@@ -4,10 +4,12 @@ import type {
   ApiSuccessResponse,
 } from "../../shared/api";
 import type { DatabaseClient } from "../db/types";
+import type { GoogleAuthDependencies } from "../auth/googleClient";
 
 export interface Env {
   DB: DatabaseClient;
   COOKIE_SECURE?: boolean;
+  GOOGLE_AUTH?: GoogleAuthDependencies;
 }
 
 function jsonHeaders(): HeadersInit {

@@ -1,5 +1,9 @@
 import { build } from "esbuild";
+import { rmSync } from "node:fs";
 import { resolve } from "node:path";
+
+const outdir = resolve("build/server");
+rmSync(outdir, { force: true, recursive: true });
 
 await build({
   absWorkingDir: process.cwd(),
@@ -7,9 +11,8 @@ await build({
     index: "server/index.ts",
     "db-migrate": "server/db/migrateCli.ts",
     "db-import": "server/db/importD1Cli.ts",
-    "setup-pins": "server/db/setupPinsCli.ts",
   },
-  outdir: resolve("build/server"),
+  outdir,
   bundle: true,
   packages: "external",
   platform: "node",

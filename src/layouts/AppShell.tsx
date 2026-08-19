@@ -7,11 +7,11 @@ import { Icon } from "../components/ui/Icon";
 import { APP_NAV_ITEMS } from "../content/appShell";
 
 export function AppShell() {
-  const { member, logout, switchProfile } = useAuth();
+  const { member, logout } = useAuth();
   const navigate = useNavigate();
-  const leave = async (changeProfile: boolean) => {
-    await (changeProfile ? switchProfile() : logout());
-    navigate(changeProfile ? "/logowanie" : "/", { replace: true });
+  const leave = async (changeAccount: boolean) => {
+    await logout();
+    navigate(changeAccount ? "/logowanie" : "/", { replace: true });
   };
   const profileControls = (
     <div className="app-shell__profile">
@@ -21,10 +21,10 @@ export function AppShell() {
         <span>W Wariatkowie</span>
       </div>
       <button
-        aria-label="Zmień profil"
+        aria-label="Zmień konto Google"
         className="icon-button"
         onClick={() => void leave(true)}
-        title="Zmień profil"
+        title="Zmień konto Google"
         type="button"
       >
         <RefreshCw />

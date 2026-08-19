@@ -2076,28 +2076,44 @@ a:focus-visible {
   margin: 0;
   color: var(--muted);
 }
-.profile-picker {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-.profile-choice {
-  display: grid;
-  justify-items: center;
-  gap: 0.7rem;
-  padding: 1.2rem;
-  border: 1px solid var(--border);
-  border-radius: 1.35rem;
-  background: var(--surface-strong);
-  font-weight: 700;
-  font-size: 1.08rem;
+.google-login-button {
+  min-height: 3.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--purple), #9a70f2);
+  color: white;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 0.65rem 1.5rem rgba(114, 87, 232, 0.24);
   transition:
     transform 180ms var(--ease-out),
     box-shadow 180ms ease;
 }
-.profile-choice:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-soft);
+.google-login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.85rem 1.8rem rgba(114, 87, 232, 0.3);
+}
+.google-login-button__mark {
+  width: 1.8rem;
+  height: 1.8rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: white;
+  color: var(--purple);
+  font-family: Arial, sans-serif;
+  font-weight: 800;
+}
+.login-card__note {
+  margin: -0.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  text-align: center;
 }
 .profile-avatar {
   width: 2.5rem;
@@ -2129,27 +2145,6 @@ a:focus-visible {
 .profile-avatar--misiek {
   background: rgba(121, 184, 255, 0.2);
   color: #3376b8;
-}
-.profile-choice .profile-avatar {
-  width: 4rem;
-  height: 4rem;
-}
-.profile-choice .profile-avatar__fallback {
-  font-size: 1.6rem;
-}
-.pin-form,
-.pin-form__member {
-  display: grid;
-  gap: 1rem;
-}
-.pin-form__member {
-  grid-template-columns: auto 1fr;
-  align-items: center;
-}
-.pin-input {
-  font-size: 1.5rem;
-  letter-spacing: 0.55em;
-  text-align: center;
 }
 .app-shell__profile {
   display: grid;
@@ -2343,9 +2338,6 @@ a:focus-visible {
 }
 
 @media (max-width: 760px) {
-  .profile-picker {
-    grid-template-columns: 1fr;
-  }
   .task-form__grid {
     grid-template-columns: 1fr;
   }

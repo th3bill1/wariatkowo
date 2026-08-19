@@ -67,6 +67,13 @@ export function applyMigrations(database: Database): string[] {
 }
 
 export function recordAllMigrations(database: Database): void {
+  recordMigrations(database, listMigrationFiles());
+}
+
+export function recordMigrations(
+  database: Database,
+  migrationNames: string[],
+): void {
   database.exec(
     `CREATE TABLE IF NOT EXISTS ${MIGRATION_TABLE} (
       name TEXT PRIMARY KEY,
@@ -78,7 +85,7 @@ export function recordAllMigrations(database: Database): void {
     `INSERT OR IGNORE INTO ${MIGRATION_TABLE} (name, checksum, applied_at) VALUES (?, ?, ?)`,
   );
   const transaction = database.transaction(() => {
-    for (const name of listMigrationFiles()) {
+    for (const name of migrationNames) {
       const sql = readFileSync(resolve(migrationsDirectory(), name), "utf8");
       insert.run(
         name,

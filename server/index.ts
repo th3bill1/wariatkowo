@@ -6,9 +6,9 @@ import express, {
 } from "express";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { onRequest as authLogin } from "./api/auth/login";
+import { onRequest as authGoogle } from "./api/auth/google";
+import { onRequest as authGoogleCallback } from "./api/auth/googleCallback";
 import { onRequest as authLogout } from "./api/auth/logout";
-import { onRequest as authMembers } from "./api/auth/members";
 import { onRequest as authSession } from "./api/auth/session";
 import { onRequest as calendarIndex } from "./api/calendar/index";
 import { onRequest as calendarItem } from "./api/calendar/[id]";
@@ -28,6 +28,8 @@ import { adaptWebHandler, type WebRouteHandler } from "./webHandler";
 import { HomeAssistantClient } from "./homeAssistant/client";
 import { loadHomeAssistantConfig } from "./homeAssistant/config";
 import { createHomeHandlers } from "./homeAssistant/routes";
+import { loadGoogleAuthConfig } from "./auth/googleConfig";
+import { GoogleOidcClient } from "./auth/googleClient";
 
 function booleanEnvironment(name: string, fallback: boolean): boolean {
   const value = process.env[name]?.trim().toLowerCase();
@@ -41,6 +43,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65_535) {
   throw new Error("PORT must be an integer between 1 and 65535.");
 }
 
+const googleConfig = loadGoogleAuthConfig();
 const database = openDatabase();
 const env: Env = {
   DB: database,
@@ -48,6 +51,10 @@ const env: Env = {
     "COOKIE_SECURE",
     process.env.NODE_ENV === "production",
   ),
+  GOOGLE_AUTH: {
+    config: googleConfig,
+    client: new GoogleOidcClient(googleConfig),
+  },
 };
 const app = express();
 app.disable("x-powered-by");
@@ -75,9 +82,9 @@ const homeHandlers = createHomeHandlers(
   new HomeAssistantClient(homeConfig),
 );
 
-route("/api/auth/members", authMembers);
 route("/api/auth/session", authSession);
-route("/api/auth/login", authLogin);
+route("/api/auth/google", authGoogle);
+route("/api/auth/google/callback", authGoogleCallback);
 route("/api/auth/logout", authLogout);
 route("/api/tasks", tasksIndex);
 route("/api/tasks/:id", taskItem);

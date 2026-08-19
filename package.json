@@ -15,7 +15,6 @@
     "typecheck": "tsc -b && tsc -p tsconfig.server.json --noEmit",
     "db:migrate": "node scripts/run-server-tool.mjs server/db/migrateCli.ts",
     "db:import": "node scripts/run-server-tool.mjs server/db/importD1Cli.ts",
-    "setup:pins": "node scripts/run-server-tool.mjs server/db/setupPinsCli.ts",
     "test": "vitest run",
     "format": "prettier --write ."
   },
@@ -25,6 +24,7 @@
     "better-sqlite3": "^13.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "google-auth-library": "^11.0.2",
     "lucide-react": "^1.30.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

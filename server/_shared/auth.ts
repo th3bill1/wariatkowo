@@ -1,15 +1,9 @@
 import type { HouseholdMember } from "../../shared/models";
-import { error, type Env } from "./http";
+import { error, nowIso, type Env } from "./http";
 
 export const SESSION_COOKIE = "wariatkowo_session";
-export const PIN_ITERATIONS = 100_000;
 const encoder = new TextEncoder();
 
-type MemberAuthRow = HouseholdMember & {
-  pin_hash: string | null;
-  pin_salt: string | null;
-  pin_iterations: number | null;
-};
 export type AuthenticatedSession = {
   member: HouseholdMember;
   sessionId: string;
@@ -20,16 +14,6 @@ function bytesToHex(bytes: Uint8Array): string {
     "",
   );
 }
-function hexToBytes(value: string): Uint8Array {
-  if (!/^[0-9a-f]+$/i.test(value) || value.length % 2 !== 0)
-    return new Uint8Array();
-  return new Uint8Array(
-    value.match(/.{2}/g)?.map((byte) => Number.parseInt(byte, 16)) ?? [],
-  );
-}
-export function isValidPin(pin: unknown): pin is string {
-  return typeof pin === "string" && /^\d{4}$/.test(pin);
-}
 export async function sha256(value: string): Promise<string> {
   return bytesToHex(
     new Uint8Array(
@@ -37,59 +21,17 @@ export async function sha256(value: string): Promise<string> {
     ),
   );
 }
-export async function derivePinHash(
-  pin: string,
-  saltHex: string,
-  iterations = PIN_ITERATIONS,
-): Promise<string> {
-  const key = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(pin),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      hash: "SHA-256",
-      salt: hexToBytes(saltHex).buffer as ArrayBuffer,
-      iterations,
-    },
-    key,
-    256,
-  );
-  return bytesToHex(new Uint8Array(bits));
-}
-export function constantTimeEqual(first: string, second: string): boolean {
-  if (first.length !== second.length) return false;
-  let mismatch = 0;
-  for (let index = 0; index < first.length; index += 1) {
-    mismatch |= first.charCodeAt(index) ^ second.charCodeAt(index);
-  }
-  return mismatch === 0;
-}
-export async function verifyMemberPin(
-  member: MemberAuthRow,
-  pin: string,
-): Promise<boolean> {
-  if (
-    !member.pin_hash ||
-    !member.pin_salt ||
-    !member.pin_iterations ||
-    member.pin_iterations > PIN_ITERATIONS
-  )
-    return false;
-  return constantTimeEqual(
-    await derivePinHash(pin, member.pin_salt, member.pin_iterations),
-    member.pin_hash,
-  );
-}
 export function readCookie(request: Request, name: string): string | null {
   const cookie = request.headers.get("Cookie") ?? "";
   for (const part of cookie.split(";")) {
     const [key, ...rest] = part.trim().split("=");
-    if (key === name) return decodeURIComponent(rest.join("="));
+    if (key === name) {
+      try {
+        return decodeURIComponent(rest.join("="));
+      } catch {
+        return null;
+      }
+    }
   }
   return null;
 }
@@ -163,13 +105,27 @@ export function createSessionExpiry(): Date {
   expires.setUTCDate(expires.getUTCDate() + 30);
   return expires;
 }
-export async function loadMemberForLogin(
+export async function createApplicationSession(
   env: Env,
-  memberId: string,
-): Promise<MemberAuthRow | null> {
-  return env.DB.prepare(
-    "SELECT id, name, slug, pin_hash, pin_salt, pin_iterations FROM household_members WHERE id = ?",
+  member: HouseholdMember,
+): Promise<{ cookie: string; expiresAt: Date }> {
+  const token = crypto.randomUUID() + crypto.randomUUID();
+  const expiresAt = createSessionExpiry();
+  const timestamp = nowIso();
+  await env.DB.prepare(
+    "INSERT INTO sessions (id, token_hash, member_id, expires_at, created_at, last_seen_at) VALUES (?, ?, ?, ?, ?, ?)",
   )
-    .bind(memberId)
-    .first<MemberAuthRow>();
+    .bind(
+      crypto.randomUUID(),
+      await sha256(token),
+      member.id,
+      expiresAt.toISOString(),
+      timestamp,
+      timestamp,
+    )
+    .run();
+  return {
+    cookie: createSessionCookie(token, expiresAt, env.COOKIE_SECURE ?? true),
+    expiresAt,
+  };
 }

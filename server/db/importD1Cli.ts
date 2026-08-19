@@ -3,7 +3,7 @@ import Database from "better-sqlite3";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { databasePathFromEnv } from "./database";
-import { recordAllMigrations } from "./migrations";
+import { applyMigrations, recordMigrations } from "./migrations";
 
 const exportArgument = process.argv[2];
 if (!exportArgument) {
@@ -58,7 +58,13 @@ try {
     );
   }
 
-  recordAllMigrations(database);
+  recordMigrations(database, [
+    "0001_initial.sql",
+    "0002_members_tasks_auth.sql",
+    "0003_shopping_products.sql",
+    "0004_calendar.sql",
+  ]);
+  applyMigrations(database);
   database.pragma("foreign_keys = ON");
   database.pragma("journal_mode = WAL");
 
