@@ -29,7 +29,7 @@ export function LoginPage() {
           <p className="page-header__eyebrow">Domowy dostęp</p>
           <h1 id="login-title">Wracamy do Wariatkowa?</h1>
           <p className="login-card__description">
-            Google potwierdzi konto, a Wariatkowo rozpozna Misia albo Miśkę.
+            Zaloguj się przez Google.
           </p>
         </div>
         {error ? (
@@ -44,7 +44,7 @@ export function LoginPage() {
           Zaloguj przez Google
         </a>
         <p className="login-card__note">
-          Dostęp mają wyłącznie dwa zatwierdzone konta domowników.
+          Dostęp mają wyłącznie konta miśków.
         </p>
       </section>
     </main>
