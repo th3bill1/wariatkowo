@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { QuizQuestion } from "../../content/quiz/questions";
 
 type QuestionStage = "waiting" | "self-answer" | "multiple-choice" | "answered";
@@ -71,6 +71,7 @@ export function QuestionCard({
   prefersReducedMotion,
 }: QuestionCardProps) {
   const [hasImageError, setHasImageError] = useState(false);
+  useEffect(() => setHasImageError(false), [question.image]);
   const isResolved = stage === "answered";
   const correctAnswerText = question.answers[question.correctAnswer];
   const feedbackCopy =

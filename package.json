@@ -4,11 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "predev": "node scripts/generate-polaroid-manifest.mjs",
     "dev": "concurrently --kill-others --names api,web \"npm:dev:server\" \"npm:dev:client\"",
     "dev:client": "vite",
     "dev:server": "node scripts/dev-server.mjs",
-    "prebuild": "node scripts/generate-polaroid-manifest.mjs",
     "build": "npm run typecheck && vite build && node scripts/build-server.mjs",
     "preview": "vite preview",
     "start": "node build/server/index.js",

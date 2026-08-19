@@ -2,8 +2,8 @@ import { useState } from "react";
 import type { HouseholdMember } from "../../../shared/models";
 
 const PROFILE_IMAGES: Record<HouseholdMember["slug"], string> = {
-  misiek: "/profiles/misiek.jpg",
-  miska: "/profiles/miska.jpg",
+  misiek: "/media/profiles/misiek.jpg",
+  miska: "/media/profiles/miska.jpg",
 };
 
 export function ProfileAvatar({

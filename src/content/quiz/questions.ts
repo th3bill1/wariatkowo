@@ -1,9 +1,9 @@
 /*
 How to add a question:
 
-1. Copy the image to public/quiz/
+1. Copy the image to /srv/docker/wariatkowo-data/images/quiz/ on the server
 2. Add a new object to quizQuestions below
-3. Set image to "/quiz/my-image.webp" or another supported format
+3. Set image to "/media/quiz/my-image.webp" or another supported format
 4. Replace the placeholder answers with real ones
 5. Set correctAnswer to the zero-based index of the right answer
 */
@@ -21,7 +21,7 @@ export const quizQuestions: QuizQuestion[] = [
   {
     id: "sniadanie",
     question: "Co tradycyjnie jemy w każdą niedzielę na śniadanie?",
-    image: "/quiz/balkon.jpg",
+    image: "/media/quiz/balkon.jpg",
     imageAlt: "sniadanie",
     answers: ["Szakszuke", "Omleta", "Naleśniki", "Bajgle"],
     correctAnswer: 0,
@@ -29,7 +29,7 @@ export const quizQuestions: QuizQuestion[] = [
   {
     id: "osiedle",
     question: "Jak nazywa się nasze osiedle?",
-    image: "/quiz/osiedle.jpg",
+    image: "/media/quiz/osiedle.jpg",
     imageAlt: "Widok naszego osiedla",
     answers: ["In Place", "Active City", "Active Home", "Smart City"],
     correctAnswer: 1,
@@ -37,7 +37,7 @@ export const quizQuestions: QuizQuestion[] = [
   {
     id: "snack",
     question: "Jaki jest ulubiony snack Miśków?",
-    image: "/quiz/snack.jpg",
+    image: "/media/quiz/snack.jpg",
     imageAlt: "Snack",
     answers: ["Strongi", "Orzeszki", "Arbuz", "Lody"],
     correctAnswer: 0,
@@ -46,7 +46,7 @@ export const quizQuestions: QuizQuestion[] = [
     id: "klima",
     question:
       "Jak nazywamy klimatyzację w Wariatkowie (dopóki Miśka nie wymyśli lepszej nazwy)?",
-    image: "/quiz/klima.jpg",
+    image: "/media/quiz/klima.jpg",
     imageAlt: "Klima",
     answers: ["Chłodzownica", "Wietrzyciel", "Dmuchator", "Szumownica"],
     correctAnswer: 3,
@@ -54,7 +54,7 @@ export const quizQuestions: QuizQuestion[] = [
   {
     id: "przeprowadzka",
     question: "Kiedy przeprowadziliśmy się do Wariatkowa?",
-    image: "/quiz/przeprowadzka2.jpeg",
+    image: "/media/quiz/przeprowadzka2.jpeg",
     imageAlt: "Zdjęcie z przeprowadzki do Wariatkowa",
     answers: ["26 lutego", "20 lutego", "27 lutego", "1 marca"],
     correctAnswer: 2,
@@ -62,7 +62,7 @@ export const quizQuestions: QuizQuestion[] = [
   {
     id: "samotnosc",
     question: "Ile razy Misiek został osamotniony w Wariatkowie?",
-    image: "/quiz/hot.jpg",
+    image: "/media/quiz/hot.jpg",
     imageAlt: "Hot",
     answers: ["2", "3", "4", "5"],
     correctAnswer: 2,
@@ -70,7 +70,7 @@ export const quizQuestions: QuizQuestion[] = [
   {
     id: "jedzenie",
     question: "Jakie było pierwsze jedzenie, które zjedliśmy w Wariatkowie?",
-    image: "/quiz/jedzenie.jpg",
+    image: "/media/quiz/jedzenie.jpg",
     imageAlt: "Jedzenie",
     answers: ["Azjata", "Pizza", "Szakszuka", "Arrabbiata"],
     correctAnswer: 1,
@@ -78,7 +78,7 @@ export const quizQuestions: QuizQuestion[] = [
   {
     id: "ludzie",
     question: "Ilu osobom (znajomi, rodzina) było dane zagościć w Wariatkowie?",
-    image: "/quiz/parapetówka.jpg",
+    image: "/media/quiz/parapetówka.jpg",
     imageAlt: "Goście",
     answers: ["16", "21", "24", "27"],
     correctAnswer: 2,
@@ -86,7 +86,7 @@ export const quizQuestions: QuizQuestion[] = [
   {
     id: "cechy",
     question: "Który zestaw najlepiej oddaje czym jest Wariatkowo?",
-    image: "/quiz/szalona.jpg",
+    image: "/media/quiz/szalona.jpg",
     imageAlt: "Wariatkowo",
     answers: [
       "piękne, spokojne, bezpieczne, zabawne",
@@ -99,7 +99,7 @@ export const quizQuestions: QuizQuestion[] = [
   {
     id: "noc",
     question: "Dlaczego sąsiedzi narzekają, że w nocy jest u nas głośno?",
-    image: "/quiz/jeki.png",
+    image: "/media/quiz/jeki.png",
     imageAlt: "Jęki",
     answers: [
       "bo Miśka głośno chrapie",
@@ -148,10 +148,12 @@ export function validateQuizQuestions(
         id: label,
         message: `Pytanie ${index + 1}: ścieżka obrazka nie może być pusta.`,
       });
-    } else if (!/^\/quiz\/[^\s]+\.(webp|jpe?g|png)$/i.test(question.image)) {
+    } else if (
+      !/^\/media\/quiz\/[^\s]+\.(webp|jpe?g|png)$/i.test(question.image)
+    ) {
       issues.push({
         id: label,
-        message: `Pytanie ${index + 1}: image powinno wskazywać na plik w public/quiz/ i mieć rozszerzenie webp/jpg/jpeg/png.`,
+        message: `Pytanie ${index + 1}: image powinno wskazywać na /media/quiz/ i mieć rozszerzenie webp/jpg/jpeg/png.`,
       });
     }
 

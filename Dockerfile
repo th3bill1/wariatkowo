@@ -18,6 +18,7 @@ FROM node:22-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     PORT=3000 \
     DATABASE_PATH=/app/data/wariatkowo.db \
+    IMAGES_PATH=/app/data/images \
     MIGRATIONS_PATH=/app/migrations
 
 WORKDIR /app

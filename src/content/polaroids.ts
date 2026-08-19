@@ -1,5 +1,3 @@
-import { GENERATED_POLAROID_FILES } from "./generatedPolaroids";
-
 export type PolaroidPhotoDefinition = {
   src: string;
   alt: string;
@@ -13,12 +11,22 @@ const PHOTO_OVERRIDES: Record<
   // "example.jpg": { alt: "", position: "center 30%" },
 };
 
-export const POLAROID_PHOTOS: PolaroidPhotoDefinition[] =
-  GENERATED_POLAROID_FILES.map((file) => {
+export function polaroidPhotosFromUrls(
+  urls: readonly string[],
+): PolaroidPhotoDefinition[] {
+  return urls.map((src) => {
+    const encodedFile = src.slice(src.lastIndexOf("/") + 1);
+    let file = encodedFile;
+    try {
+      file = decodeURIComponent(encodedFile);
+    } catch {
+      // Keep the URL-provided value when it contains malformed escaping.
+    }
     const override = PHOTO_OVERRIDES[file];
     return {
-      src: `/polaroids/${encodeURIComponent(file)}`,
+      src,
       alt: override?.alt ?? "",
       position: override?.position,
     };
   });
+}

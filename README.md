@@ -141,24 +141,27 @@ Never commit `.env`, `GOOGLE_CLIENT_SECRET`, private household email addresses o
    GOOGLE_REDIRECT_URI=http://localhost:5173/api/auth/google/callback
    GOOGLE_CALENDAR_REDIRECT_URI=http://localhost:5173/api/integrations/google-calendar/callback
    GOOGLE_TOKEN_ENCRYPTION_KEY=replace-with-generated-base64url-key
-   GOOGLE_ALLOWED_USERS_JSON={"first-private-account@example.com":"misiek","second-private-account@example.com":"miska"}
-   DATABASE_PATH=./data/wariatkowo.db
-   MIGRATIONS_PATH=./migrations
+    GOOGLE_ALLOWED_USERS_JSON={"first-private-account@example.com":"misiek","second-private-account@example.com":"miska"}
+    DATABASE_PATH=./data/wariatkowo.db
+    MIGRATIONS_PATH=./migrations
+    IMAGES_PATH=./data/images
    ```
 
-3. Initialize/update the database. Startup does this automatically; it can also be run explicitly:
+3. Create `data/images/polaroids`, `data/images/profiles` and `data/images/quiz`, then copy any development-only personal images there. The entire `data/` directory is ignored by Git.
+
+4. Initialize/update the database. Startup does this automatically; it can also be run explicitly:
 
    ```bash
    npm run db:migrate
    ```
 
-4. Start the Vite and API development servers together:
+5. Start the Vite and API development servers together:
 
    ```bash
    npm run dev
    ```
 
-Vite runs the browser app and proxies relative `/api` requests to `127.0.0.1:3000`. The server rebuilds/restarts when backend TypeScript changes. No production URL is embedded in the browser bundle.
+Vite runs the browser app and proxies relative `/api` and `/media` requests to `127.0.0.1:3000`. The server rebuilds/restarts when backend TypeScript changes. No production URL is embedded in the browser bundle.
 
 Useful commands:
 
@@ -284,11 +287,13 @@ If HA is offline or misconfigured, tasks, shopping, calendar, quiz, dashboard an
 
 1. Copy the repository to the server.
 2. Copy `.env.example` to `.env`, fill the Google OAuth, Calendar, whitelist and HA/entity values, and keep it readable only by the deployment account. Production must use both exact production Google redirect URIs and `COOKIE_SECURE=true`.
-3. Prepare the bind-mounted directory for the unprivileged container user, then leave `DATABASE_PATH=./data/wariatkowo.db`:
+3. Prepare the database directory and confirm the external image tree exists and is readable by the unprivileged container user. Leave `DATABASE_PATH=./data/wariatkowo.db` and `IMAGES_PATH=./data/images`:
 
    ```bash
-   mkdir -p data
-   sudo chown 1000:1000 data
+    mkdir -p data
+    sudo chown 1000:1000 data
+    find /srv/docker/wariatkowo-data/images -maxdepth 2 -type d -print
+    test -r /srv/docker/wariatkowo-data/images/profiles/misiek.jpg
    ```
 
 4. Build and start:
@@ -296,13 +301,26 @@ If HA is offline or misconfigured, tasks, shopping, calendar, quiz, dashboard an
    ```bash
    docker compose build
    docker compose up -d
-   docker compose ps
-   curl http://127.0.0.1:3000/api/health
+    docker compose ps
+    curl http://127.0.0.1:3000/api/health
+    curl http://127.0.0.1:3000/api/images/polaroids
+    curl --fail --output /dev/null http://127.0.0.1:3000/media/profiles/misiek.jpg
+    curl --fail --output /dev/null http://127.0.0.1:3000/media/polaroids/kajaki.jpg
+    curl --fail --output /dev/null http://127.0.0.1:3000/media/quiz/przeprowadzka.jpg
+    docker compose exec wariatkowo find /app/data/images -maxdepth 2 -type f -print
    ```
 
 5. Confirm persistence by adding a harmless item, running `docker compose restart wariatkowo`, and checking it remains.
 
-The image is a Node 22 Debian multi-stage build. The final stage contains production packages, bundled server tools, the Vite `dist`, and migrations; the database is not stored in an image layer. The service binds `0.0.0.0:3000`, has a healthcheck and restarts unless stopped.
+The image is a Node 22 Debian multi-stage build. The final stage contains production packages, bundled server tools, the Vite `dist`, and migrations; neither the database nor personal images are stored in an image layer. Compose mounts `/srv/docker/wariatkowo-data/images` at `/app/data/images` read-only. The service binds `0.0.0.0:3000`, has a healthcheck and restarts unless stopped.
+
+The existing `noc` quiz question is mapped to `quiz/jeki.png`. That file is not in the supplied Debian inventory, so upload it to `/srv/docker/wariatkowo-data/images/quiz/jeki.png` if the question should show its original image; until then the quiz displays its normal missing-image placeholder.
+
+To add a Polaroid later, upload a supported image and refresh the page—no Git commit, frontend build or Docker rebuild is needed:
+
+```bash
+scp photo.jpg th3bill@server-th3bill:/srv/docker/wariatkowo-data/images/polaroids/
+```
 
 For direct LAN HTTP development set `COOKIE_SECURE=false`. For the HTTPS Cloudflare hostname set `COOKIE_SECURE=true` so both the OAuth state cookie and household session cookie stay secure. Express trusts the first proxy hop, while the OAuth redirect remains the exact configured public URI rather than being inferred from forwarded headers.
 
@@ -329,7 +347,7 @@ Without the profile, `cloudflared` is not started. The Google client secret belo
 
 - Do not commit `.env`, databases, D1 exports or access tokens.
 - API SQL uses parameters; migrations are the only reviewed raw SQL scripts.
-- Static serving is limited to `dist`, so `/app/data` is not web-accessible.
+- Static SPA serving is limited to `dist`. Personal media is exposed only through `/media/{polaroids|profiles|quiz}/<filename>` with category, extension, traversal and canonical-path checks; the rest of `/app/data` is not web-accessible.
 - Production errors do not include stack traces or filesystem paths.
 - Google ID tokens are verified with Google's maintained authentication library for signature, issuer, audience and expiration; verified email and stable `sub` are also required.
 - OAuth callback state is constant-time checked, short-lived and bound to the code exchange with PKCE.
@@ -349,7 +367,7 @@ docker compose config
 docker compose build
 ```
 
-Then manually verify both allowed Google accounts, a denied account, cancellation and an expired login attempt. Connect each member's Calendar account and verify Google-to-Wariatkowo create/edit/delete plus Wariatkowo-to-Google create/edit/delete on writable and read-only calendars. Verify tasks CRUD/assignment/recurrence/statistics, shopping/history/shop mode, local calendar CRUD, quiz, `/home` polling and every configured HA control. Test React deep links directly and test core features once with Home Assistant stopped. Inspect `dist` and confirm `GOOGLE_CLIENT_SECRET`, `GOOGLE_TOKEN_ENCRYPTION_KEY`, refresh tokens and access tokens are absent from the browser bundle.
+Then manually verify both profile photos, Welcome/Dashboard Polaroids, quiz image assignments (including `parapetówka.jpg`), and missing-image fallbacks. Add a temporary Polaroid on the host and confirm that refreshing discovers it without rebuilding. Also verify both allowed Google accounts, a denied account, cancellation and an expired login attempt. Connect each member's Calendar account and verify Google-to-Wariatkowo create/edit/delete plus Wariatkowo-to-Google create/edit/delete on writable and read-only calendars. Verify tasks CRUD/assignment/recurrence/statistics, shopping/history/shop mode, local calendar CRUD, `/home` polling and every configured HA control. Test React deep links directly and test core features once with Home Assistant stopped. Inspect `dist` and confirm personal images, `GOOGLE_CLIENT_SECRET`, `GOOGLE_TOKEN_ENCRYPTION_KEY`, refresh tokens and access tokens are absent from the browser bundle.
 
 ## Current limitations
 

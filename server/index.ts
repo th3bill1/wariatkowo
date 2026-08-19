@@ -39,6 +39,7 @@ import { GoogleOidcClient } from "./auth/googleClient";
 import { loadGoogleCalendarConfig } from "./googleCalendar/config";
 import { GoogleCalendarHttpClient } from "./googleCalendar/client";
 import { AesGcmTokenCipher } from "./googleCalendar/tokenCipher";
+import { createImageRouter } from "./media";
 
 function booleanEnvironment(name: string, fallback: boolean): boolean {
   const value = process.env[name]?.trim().toLowerCase();
@@ -75,10 +76,14 @@ const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
+const imagesPath = resolve(process.env.IMAGES_PATH ?? "/app/data/images");
+
 app.get("/api/health", (_request, response) => {
   database.raw.prepare("SELECT 1").get();
   response.json({ status: "ok" });
 });
+
+app.use(createImageRouter(imagesPath));
 
 app.use(
   "/api",

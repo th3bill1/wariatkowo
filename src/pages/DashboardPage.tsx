@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { TaskStats } from "../../shared/models";
@@ -19,9 +19,9 @@ import { taskStatsService } from "../services/taskStatsService";
 import { useCalendar } from "../hooks/useCalendar";
 import { CALENDAR_TYPES } from "../content/calendar";
 import { PolaroidPhoto } from "../components/PolaroidPhoto";
-import { POLAROID_PHOTOS } from "../content/polaroids";
 import { randomUniqueItems } from "../utils/randomSelection";
 import { HomeSummaryCard } from "../components/home/HomeSummaryCard";
+import { usePolaroidPhotos } from "../hooks/usePolaroidPhotos";
 
 const pick = <T,>(items: readonly T[]): T =>
   items[Math.floor(Math.random() * items.length)];
@@ -39,6 +39,7 @@ function relativeTime(value: string): string {
 }
 export function DashboardPage() {
   const { member } = useAuth();
+  const availablePhotos = usePolaroidPhotos();
   const {
     tasks,
     loadState: taskState,
@@ -52,11 +53,13 @@ export function DashboardPage() {
     refresh: refreshShopping,
   } = useShopping();
   const [status] = useState(() => pick(WARIATKOWO_STATUSES));
-  const [dashboardPhotos] = useState(() =>
-    randomUniqueItems(POLAROID_PHOTOS, 3).map((photo, index) => ({
-      ...photo,
-      rotation: [-5, 1.5, 5][index],
-    })),
+  const dashboardPhotos = useMemo(
+    () =>
+      randomUniqueItems(availablePhotos, 3).map((photo, index) => ({
+        ...photo,
+        rotation: [-5, 1.5, 5][index],
+      })),
+    [availablePhotos],
   );
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   const calendarFrom = dayKey(new Date());

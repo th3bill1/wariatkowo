@@ -8,6 +8,7 @@ services:
       - .env
     volumes:
       - ./data:/app/data
+      - /srv/docker/wariatkowo-data/images:/app/data/images:ro
     healthcheck:
       test:
         [

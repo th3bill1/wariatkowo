@@ -23,6 +23,8 @@ export function PolaroidPhoto({
 }: PolaroidPhotoProps) {
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  if (failed) return null;
+
   return (
     <figure
       aria-hidden={alt ? undefined : true}
@@ -30,7 +32,6 @@ export function PolaroidPhoto({
         "polaroid-photo",
         `polaroid-photo--${size}`,
         !loaded && !failed ? "polaroid-photo--loading" : "",
-        failed ? "polaroid-photo--failed" : "",
         className,
       ]
         .filter(Boolean)
@@ -40,19 +41,17 @@ export function PolaroidPhoto({
       }
     >
       <div className="polaroid-photo__image-area">
-        {!failed ? (
-          <img
-            alt={alt}
-            decoding="async"
-            height="300"
-            loading={loading}
-            onError={() => setFailed(true)}
-            onLoad={() => setLoaded(true)}
-            src={src}
-            style={{ objectPosition: position }}
-            width="400"
-          />
-        ) : null}
+        <img
+          alt={alt}
+          decoding="async"
+          height="300"
+          loading={loading}
+          onError={() => setFailed(true)}
+          onLoad={() => setLoaded(true)}
+          src={src}
+          style={{ objectPosition: position }}
+          width="400"
+        />
       </div>
     </figure>
   );
