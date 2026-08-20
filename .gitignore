@@ -26,6 +26,7 @@ vite.config.d.ts
 .expo/
 apps/mobile/.expo/
 .gradle-local/
+.cxx/
 **/.gradle/
 **/android/.gradle/
 **/android/build/

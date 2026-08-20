@@ -88,12 +88,25 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.wariatkowo.mobile'
+    externalNativeBuild {
+        cmake {
+            // Shorten the base path so CMake has room to hash long codegen paths.
+            buildStagingDirectory file("${rootDir}/../../../.cxx/app")
+        }
+    }
     defaultConfig {
         applicationId 'com.wariatkowo.mobile'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+
+        // Keep generated C/C++ object paths below Windows' MAX_PATH limit.
+        externalNativeBuild {
+            cmake {
+                arguments "-DCMAKE_OBJECT_PATH_MAX=250"
+            }
+        }
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
