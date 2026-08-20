@@ -7,6 +7,8 @@ import express, {
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { onRequest as authGoogle } from "./api/auth/google";
+import { onRequest as authMobile } from "./api/auth/mobile";
+import { onRequest as authMobileExchange } from "./api/auth/mobileExchange";
 import { onRequest as authGoogleCallback } from "./api/auth/googleCallback";
 import { onRequest as authLogout } from "./api/auth/logout";
 import { onRequest as authSession } from "./api/auth/session";
@@ -104,6 +106,8 @@ const homeHandlers = createHomeHandlers(
 
 route("/api/auth/session", authSession);
 route("/api/auth/google", authGoogle);
+route("/api/auth/mobile", authMobile);
+route("/api/auth/mobile/exchange", authMobileExchange);
 route("/api/auth/google/callback", authGoogleCallback);
 route("/api/auth/logout", authLogout);
 route("/api/integrations/google-calendar/status", googleCalendarStatus);

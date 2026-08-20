@@ -39,7 +39,8 @@ export async function getAuthenticatedSession(
   request: Request,
   env: Env,
 ): Promise<AuthenticatedSession | null> {
-  const token = readCookie(request, SESSION_COOKIE);
+  const authorization = request.headers.get("Authorization");
+  const token = authorization?.match(/^Bearer ([A-Za-z0-9-]+)$/)?.[1] ?? readCookie(request, SESSION_COOKIE);
   if (!token) return null;
   const row = await env.DB.prepare(
     "SELECT s.id AS session_id, m.id, m.name, m.slug FROM sessions s JOIN household_members m ON m.id = s.member_id WHERE s.token_hash = ? AND s.expires_at > ?",
@@ -108,7 +109,7 @@ export function createSessionExpiry(): Date {
 export async function createApplicationSession(
   env: Env,
   member: HouseholdMember,
-): Promise<{ cookie: string; expiresAt: Date }> {
+): Promise<{ cookie: string; token: string; expiresAt: Date }> {
   const token = crypto.randomUUID() + crypto.randomUUID();
   const expiresAt = createSessionExpiry();
   const timestamp = nowIso();
@@ -126,6 +127,7 @@ export async function createApplicationSession(
     .run();
   return {
     cookie: createSessionCookie(token, expiresAt, env.COOKIE_SECURE ?? true),
+    token,
     expiresAt,
   };
 }

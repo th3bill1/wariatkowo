@@ -125,6 +125,36 @@ Never commit `.env`, `GOOGLE_CLIENT_SECRET`, private household email addresses o
 
 ## Local development
 
+### Android application
+
+The repository is an npm-workspaces monorepo: the existing Vite/Express application remains at the root, the native client lives in `apps/mobile`, and the platform-neutral typed client lives in `packages/api-client`.
+
+```bash
+npm install
+npm run dev:server
+npm run dev:web
+npm run dev:mobile
+```
+
+Set `EXPO_PUBLIC_API_URL` to the public HTTPS Wariatkowo origin (this is only an origin, never a secret). The checked-in emulator default is `http://10.0.2.2:3000`; a physical phone must use a reachable LAN/HTTPS address. Start the server, run `npm run android`, and complete Google login in the system browser. The server reuses the existing Google callback and whitelist, then gives the app a two-minute, one-use exchange code. The resulting application session is held in Android secure storage. No Google secret, Home Assistant token, or Calendar token is shipped in the APK.
+
+Expo prebuild installs a config-plugin-managed Jetpack Glance widget. It displays exactly Boskie światło, Miśkolampa, and Szumownica, uses bulb/snowflake semantics from the web cards, performs authenticated API toggles in an Android callback, and opens `wariatkowo://devices/{boskie-swiatlo|miskolampa|szumownica}` for full controls. Widget credentials are copied into encrypted Android preferences, cleared on logout, and never include Home Assistant credentials. Android requests a state snapshot before toggling and refreshes it afterward; the provider's conservative periodic update is 30 minutes, while the app refreshes state on entry/pull and after controls.
+
+Build APKs with EAS:
+
+```bash
+cd apps/mobile
+npx eas-cli build --platform android --profile development
+npx eas-cli build --platform android --profile preview
+npx eas-cli build --platform android --profile production
+```
+
+`development` includes the Expo development client; `preview` and `production` produce installable APKs. For a local emulator/USB device, install Android Studio/JDK 17 and use `npm run android`. Run `npx expo prebuild --platform android --clean` after changing the widget plugin.
+
+Run EAS commands from `apps/mobile`, not the repository root. The root package is the Vite web application and intentionally does not depend on Expo. The Android directory is committed because it contains the generated Glance widget integration; after changing `app.json` or native plugins, regenerate it with `npm run prebuild -- --clean` from `apps/mobile`.
+
+Current native limitations: Google Calendar connection management still redirects to the web calendar UI, shopping product-library administration is represented by the shared list rather than a separate editor, and widget state is refreshed at action/app/Android periodic-update boundaries rather than through push. The next useful native additions are push reminders, notification actions, biometric session unlock, and a WorkManager-backed explicit sync schedule.
+
 1. Install dependencies:
 
    ```bash

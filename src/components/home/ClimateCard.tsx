@@ -56,7 +56,7 @@ export function ClimateCard({
     ),
   );
   const runRef = useRef(run);
-  const temperatureTimer = useRef<number>();
+  const temperatureTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     runRef.current = run;
   }, [run]);

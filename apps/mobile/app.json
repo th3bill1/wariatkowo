@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Wariatkowo",
+    "slug": "wariatkowo",
+    "scheme": "wariatkowo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.wariatkowo.mobile",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [
+            {
+              "scheme": "wariatkowo",
+              "host": "devices"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "./plugins/withWariatkowoWidget",
+      "expo-status-bar",
+      "expo-web-browser",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "apiUrl": "http://10.0.2.2:3000",
+      "router": {},
+      "eas": {
+        "projectId": "642ce204-063e-4bf0-bccd-a1062e9ad0ce"
+      }
+    }
+  }
+}

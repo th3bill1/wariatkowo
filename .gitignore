@@ -23,3 +23,10 @@ coverage
 vite.config.js
 vite.config.d.ts
 .wrangler/state/
+.expo/
+apps/mobile/.expo/
+.gradle-local/
+**/.gradle/
+**/android/.gradle/
+**/android/build/
+**/android/app/build/

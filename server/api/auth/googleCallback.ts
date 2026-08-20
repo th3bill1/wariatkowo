@@ -1,4 +1,4 @@
-import { createApplicationSession } from "../../_shared/auth";
+import { createApplicationSession, readCookie, sha256 } from "../../_shared/auth";
 import { methodNotAllowed, type Env } from "../../_shared/http";
 import {
   GoogleAccountNotAllowedError,
@@ -95,6 +95,15 @@ export async function onRequest(context: {
   try {
     const member = await mapGoogleIdentityToMember(context.env, identity);
     const session = await createApplicationSession(context.env, member);
+    const mobileRedirect = readCookie(context.request, "wariatkowo_mobile_redirect");
+    if (mobileRedirect) {
+      const code = crypto.randomUUID() + crypto.randomUUID();
+      const expiresAt = new Date(Date.now() + 2 * 60_000).toISOString();
+      await context.env.DB.prepare("INSERT INTO mobile_login_codes (code_hash, session_token, member_id, expires_at, created_at) VALUES (?, ?, ?, ?, ?)").bind(await sha256(code), session.token, member.id, expiresAt, new Date().toISOString()).run();
+      const response = redirect(context.env, `${mobileRedirect}${mobileRedirect.includes("?") ? "&" : "?"}code=${encodeURIComponent(code)}`);
+      response.headers.append("Set-Cookie", "wariatkowo_mobile_redirect=; Path=/api/auth; HttpOnly; SameSite=Lax; Max-Age=0");
+      return response;
+    }
     return redirect(context.env, "/dashboard", session.cookie);
   } catch (error) {
     if (error instanceof GoogleAccountNotAllowedError) {

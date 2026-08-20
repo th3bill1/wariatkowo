@@ -1,8 +1,9 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { LoadingState } from "./ui/LoadingState";
 import { useAuth } from "../auth/AuthContext";
+import type { ReactElement } from "react";
 
-export function ProtectedRoute({ children }: { children: JSX.Element }) {
+export function ProtectedRoute({ children }: { children: ReactElement }) {
   const { member, isLoading } = useAuth();
   const location = useLocation();
   if (isLoading)
