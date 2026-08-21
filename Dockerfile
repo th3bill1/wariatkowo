@@ -19,6 +19,7 @@ ENV NODE_ENV=production \
     PORT=3000 \
     DATABASE_PATH=/app/data/wariatkowo.db \
     IMAGES_PATH=/app/data/images \
+    MOBILE_RELEASES_PATH=/app/data/mobile \
     MIGRATIONS_PATH=/app/migrations
 
 WORKDIR /app
@@ -29,7 +30,7 @@ COPY --from=build /app/build/server ./build/server
 COPY --from=build /app/dist ./dist
 COPY migrations ./migrations
 
-RUN mkdir -p /app/data && chown node:node /app/data
+RUN mkdir -p /app/data/mobile && chown node:node /app/data /app/data/mobile
 USER node
 
 EXPOSE 3000

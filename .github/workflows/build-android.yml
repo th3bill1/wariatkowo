@@ -1,0 +1,125 @@
+name: Build Wariatkowo Android
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/mobile/**"
+      - "packages/api-client/**"
+      - "shared/**"
+      - "package.json"
+      - "package-lock.json"
+      - "scripts/read-eas-build-id.mjs"
+      - "scripts/prepare-eas-android-release.mjs"
+      - ".github/workflows/build-android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wariatkowo-android-main
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build signed APK and publish it
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      CI: "true"
+
+    steps:
+      - name: Check out the requested commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify required secrets
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          WARIATKOWO_MOBILE_DEPLOY_TOKEN: ${{ secrets.WARIATKOWO_MOBILE_DEPLOY_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -z "${EXPO_TOKEN:-}" ]]; then
+            echo "::error::The EXPO_TOKEN GitHub secret is not configured."
+            exit 1
+          fi
+          if [[ -z "${WARIATKOWO_MOBILE_DEPLOY_TOKEN:-}" ]]; then
+            echo "::error::The WARIATKOWO_MOBILE_DEPLOY_TOKEN GitHub secret is not configured."
+            exit 1
+          fi
+
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Type-check the Android application
+        run: npm run typecheck --workspace @wariatkowo/mobile
+
+      - name: Build the Android APK with EAS
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        shell: bash
+        run: |
+          npx --yes eas-cli@22.0.0 build \
+            --platform android \
+            --profile preview \
+            --non-interactive \
+            --wait \
+            --json > "$RUNNER_TEMP/eas-build.json"
+
+      - name: Fetch exact EAS build metadata
+        working-directory: apps/mobile
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        shell: bash
+        run: |
+          build_id="$(node ../../scripts/read-eas-build-id.mjs "$RUNNER_TEMP/eas-build.json")"
+          npx --yes eas-cli@22.0.0 build:view "$build_id" --json \
+            > "$RUNNER_TEMP/eas-build-view.json"
+
+      - name: Download and validate the exact APK
+        shell: bash
+        run: |
+          node scripts/prepare-eas-android-release.mjs \
+            "$RUNNER_TEMP/eas-build-view.json" \
+            "$GITHUB_SHA" \
+            "$RUNNER_TEMP/wariatkowo.apk" \
+            "$RUNNER_TEMP/mobile-release.json"
+
+      - name: Upload APK to Wariatkowo
+        env:
+          WARIATKOWO_MOBILE_DEPLOY_TOKEN: ${{ secrets.WARIATKOWO_MOBILE_DEPLOY_TOKEN }}
+        shell: bash
+        run: |
+          version="$(jq -r '.version' "$RUNNER_TEMP/mobile-release.json")"
+          version_code="$(jq -r '.versionCode' "$RUNNER_TEMP/mobile-release.json")"
+          built_at="$(jq -r '.builtAt' "$RUNNER_TEMP/mobile-release.json")"
+          commit="$(jq -r '.commit' "$RUNNER_TEMP/mobile-release.json")"
+          eas_build_id="$(jq -r '.easBuildId' "$RUNNER_TEMP/mobile-release.json")"
+          original_filename="$(jq -r '.originalFilename' "$RUNNER_TEMP/mobile-release.json")"
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --retry 3 \
+            --retry-all-errors \
+            --proto '=https' \
+            --tlsv1.2 \
+            -H "Authorization: Bearer ${WARIATKOWO_MOBILE_DEPLOY_TOKEN}" \
+            -F "apk=@${RUNNER_TEMP}/wariatkowo.apk;filename=${original_filename};type=application/vnd.android.package-archive" \
+            -F "version=${version}" \
+            -F "versionCode=${version_code}" \
+            -F "builtAt=${built_at}" \
+            -F "commit=${commit}" \
+            -F "easBuildId=${eas_build_id}" \
+            https://wariatkowo.wwojcik.com/api/internal/mobile-release

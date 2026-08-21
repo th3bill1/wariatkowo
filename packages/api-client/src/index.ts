@@ -1,7 +1,7 @@
 import type {
   CalendarEvent, CalendarSource, CreateCalendarEventInput, CreateShoppingItemInput,
   CreateTaskInput, GoogleCalendarConnectionStatus, HomeStatus, HouseholdMember,
-  ShoppingItem, ShoppingProduct, Task, TaskStats, UpdateCalendarEventInput,
+  MobileReleaseStatus, ShoppingItem, ShoppingProduct, Task, TaskStats, UpdateCalendarEventInput,
   UpdateShoppingItemInput, UpdateTaskInput,
 } from "../../../shared/models";
 import { API_ERROR_CODES, type ApiErrorCode, type ApiErrorResponse, type ApiSuccessResponse } from "../../../shared/api";
@@ -42,6 +42,9 @@ export function createApiClient(options: ApiClientOptions) {
       session: () => request<HouseholdMember | null>("/api/auth/session"),
       exchange: (code: string) => request<{ token: string; member: HouseholdMember; expiresAt: string }>("/api/auth/mobile/exchange", { method: "POST", body: body({ code }) }),
       logout: () => request<void>("/api/auth/logout", { method: "POST" }),
+    },
+    mobile: {
+      latest: () => request<MobileReleaseStatus>("/api/mobile/latest"),
     },
     tasks: {
       list: () => request<Task[]>("/api/tasks"), create: (input: CreateTaskInput) => request<Task>("/api/tasks", { method: "POST", body: body(input) }),

@@ -42,6 +42,9 @@ import { loadGoogleCalendarConfig } from "./googleCalendar/config";
 import { GoogleCalendarHttpClient } from "./googleCalendar/client";
 import { AesGcmTokenCipher } from "./googleCalendar/tokenCipher";
 import { createImageRouter } from "./media";
+import { loadMobileReleaseConfig } from "./mobileRelease/config";
+import { createMobileReleaseRouter } from "./mobileRelease/router";
+import { MobileReleaseStorage } from "./mobileRelease/storage";
 
 function booleanEnvironment(name: string, fallback: boolean): boolean {
   const value = process.env[name]?.trim().toLowerCase();
@@ -79,6 +82,12 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
 const imagesPath = resolve(process.env.IMAGES_PATH ?? "/app/data/images");
+const mobileReleaseConfig = loadMobileReleaseConfig();
+const mobileReleaseStorage = new MobileReleaseStorage(
+  mobileReleaseConfig.rootPath,
+  mobileReleaseConfig.retentionCount,
+);
+await mobileReleaseStorage.initialize();
 
 app.get("/api/health", (_request, response) => {
   database.raw.prepare("SELECT 1").get();
@@ -86,6 +95,13 @@ app.get("/api/health", (_request, response) => {
 });
 
 app.use(createImageRouter(imagesPath));
+app.use(
+  createMobileReleaseRouter({
+    env,
+    storage: mobileReleaseStorage,
+    config: mobileReleaseConfig,
+  }),
+);
 
 app.use(
   "/api",

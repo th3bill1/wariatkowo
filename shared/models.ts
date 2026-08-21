@@ -254,3 +254,18 @@ export type HomeStatus = {
   xbox: HomeMediaDevice | null;
   scenes: HomeScene[];
 };
+
+export type MobileRelease = {
+  available: true;
+  version: string;
+  versionCode: number;
+  builtAt: string;
+  commit: string;
+  downloadUrl: "/api/mobile/download";
+};
+
+export type MobileReleaseStatus =
+  | MobileRelease
+  | {
+      available: false;
+    };

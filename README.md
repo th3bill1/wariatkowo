@@ -151,6 +151,119 @@ npx eas-cli build --platform android --profile production
 
 `development` includes the Expo development client; `preview` and `production` produce installable APKs. For a local emulator/USB device, install Android Studio/JDK 17 and use `npm run android`. Run `npx expo prebuild --platform android --clean` after changing the widget plugin.
 
+### Automated private Android releases
+
+The GitHub Actions workflow **Build Wariatkowo Android** runs after a push to
+`main` changes `apps/mobile`, `packages/api-client`, `shared`, or the npm
+workspace manifests. Changes confined to the web application (`src`) do not
+start an EAS build. The workflow can also be started at any time from **GitHub
+→ Actions → Build Wariatkowo Android → Run workflow**.
+
+The workflow uses the `preview` EAS profile to create a signed, directly
+installable APK. Remote EAS app-version management and `autoIncrement` give
+each Android build a new `versionCode`. The workflow reads the machine-readable
+build result, retrieves that exact build by ID, verifies its commit is
+`GITHUB_SHA`, downloads its APK, and uploads it to Wariatkowo. It never selects
+an unrelated "latest" EAS build. This is private APK distribution; Google Play
+Console, Play Store tracks, and EAS Submit are not involved.
+
+Configure these GitHub repository secrets under **Settings → Secrets and
+variables → Actions**:
+
+```text
+EXPO_TOKEN
+WARIATKOWO_MOBILE_DEPLOY_TOKEN
+```
+
+`EXPO_TOKEN` is an Expo access token for the account that owns EAS project
+`642ce204-063e-4bf0-bccd-a1062e9ad0ce`.
+`WARIATKOWO_MOBILE_DEPLOY_TOKEN` must be the same long random value configured
+on the production server. Neither value belongs in Git, `VITE_*`, or
+`EXPO_PUBLIC_*` configuration.
+
+Before CI is expected to work, the project owner must initialize Android
+credentials and remote versioning interactively once. Run these commands from
+the mobile workspace:
+
+```bash
+cd apps/mobile
+npx eas-cli@22.0.0 login
+npx eas-cli@22.0.0 build:version:set
+npx eas-cli@22.0.0 build --platform android --profile preview
+```
+
+Choose Android when `build:version:set` asks for the platform, and initialize
+the remote versionCode at least as high as the newest APK already installed on
+the household phones. The first interactive `build` lets EAS create or select
+the Android signing keystore. Keep the established package identifier
+`com.wariatkowo.mobile`; changing it would make Android treat the APK as a
+different application. Create the Expo token after this setup in the Expo
+account settings and save it only as the `EXPO_TOKEN` GitHub secret.
+
+On the server, generate a separate random deployment credential, for example:
+
+```bash
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
+```
+
+Set it in the production `.env` (minimum 32 characters), along with the
+documented storage defaults:
+
+```env
+WARIATKOWO_MOBILE_DEPLOY_TOKEN=replace-with-a-long-random-value
+MOBILE_RELEASES_PATH=/app/data/mobile
+MOBILE_RELEASE_MAX_SIZE_MB=200
+MOBILE_RELEASE_RETENTION=5
+```
+
+If the deployment token is absent, the rest of Wariatkowo still starts, but the
+internal upload endpoint fails clearly with `503 NOT_CONFIGURED`. A configured
+token shorter than 32 characters is rejected during server startup.
+
+Compose already bind-mounts `./data:/app/data`, so the effective container
+directory `/app/data/mobile` persists on the host as `./data/mobile`. It holds
+`latest.json`, `wariatkowo-latest.apk`, temporary uploads, and up to five
+versioned files in `releases/`. The upload is streamed, validated, and promoted
+atomically; the metadata pointer changes only after the history file and latest
+APK are complete. Android `versionCode` ordering and the workflow concurrency
+group prevent older or overlapping runs from replacing a newer release.
+
+The release endpoints are:
+
+- `POST /api/internal/mobile-release` — GitHub Actions only; authenticates with
+  `Authorization: Bearer <WARIATKOWO_MOBILE_DEPLOY_TOKEN>`.
+- `GET /api/mobile/latest` — current metadata for an authenticated household
+  session, or `{ "available": false }` in the normal API envelope.
+- `GET /api/mobile/download` — streams the current APK to an authenticated
+  browser or native bearer session.
+
+The dashboard loads the metadata endpoint and displays a quiet Android download
+control only when a release is available. The Android client checks the same
+metadata after login, compares it with the installed native build number, and
+shows one dismissible update notice per running session. Its update action
+downloads through the authenticated Wariatkowo endpoint and opens Android's
+package installer; the phone may ask once for permission to install apps from
+Wariatkowo.
+
+Troubleshooting follows the workflow step names:
+
+- **Check out / Set up / Install**: inspect repository checkout, Node 22, and
+  `npm ci`; no Expo request has happened yet.
+- **Build the Android APK with EAS**: verify `EXPO_TOKEN`, Expo project access,
+  initial signing credentials, and the remote versionCode. Open the exact EAS
+  build ID shown by the workflow when native compilation fails.
+- **Fetch exact EAS build metadata**: the build ID, `FINISHED` state, profile,
+  and commit must all match the current workflow run.
+- **Download and validate the exact APK**: verify the EAS artifact is still
+  available and is a valid APK smaller than the configured 200 MB limit.
+- **Upload APK to Wariatkowo**: verify both copies of
+  `WARIATKOWO_MOBILE_DEPLOY_TOKEN`, HTTPS reachability, host directory ownership
+  (`uid 1000`), upload size, and whether a higher versionCode is already live.
+- **Dashboard/APK download**: while logged in, call `/api/mobile/latest`; then
+  check `/app/data/mobile/latest.json`, `releases/`, server logs, and the
+  authenticated `/api/mobile/download` response. Filesystem paths and secrets
+  are never returned by the API.
+
 Run EAS commands from `apps/mobile`, not the repository root. The root package is the Vite web application and intentionally does not depend on Expo. The Android directory is committed because it contains the generated Glance widget integration; after changing `app.json` or native plugins, regenerate it with `npm run prebuild -- --clean` from `apps/mobile`.
 
 Current native limitations: Google Calendar connection management still redirects to the web calendar UI, shopping product-library administration is represented by the shared list rather than a separate editor, and widget state is refreshed at action/app/Android periodic-update boundaries rather than through push. The next useful native additions are push reminders, notification actions, biometric session unlock, and a WorkManager-backed explicit sync schedule.
@@ -316,11 +429,11 @@ If HA is offline or misconfigured, tasks, shopping, calendar, dashboard and logi
 
 1. Copy the repository to the server.
 2. Copy `.env.example` to `.env`, fill the Google OAuth, Calendar, whitelist and HA/entity values, and keep it readable only by the deployment account. Production must use both exact production Google redirect URIs and `COOKIE_SECURE=true`.
-3. Prepare the database directory and confirm the external image tree exists and is readable by the unprivileged container user. Leave `DATABASE_PATH=./data/wariatkowo.db` and `IMAGES_PATH=./data/images`:
+3. Prepare the persistent data directory and confirm the external image tree exists and is readable by the unprivileged container user. Leave `DATABASE_PATH=./data/wariatkowo.db`, `IMAGES_PATH=./data/images`, and `MOBILE_RELEASES_PATH=./data/mobile` for host development; Docker sets the last path to `/app/data/mobile`:
 
    ```bash
-    mkdir -p data
-    sudo chown 1000:1000 data
+    mkdir -p data/mobile
+    sudo chown 1000:1000 data data/mobile
     find /srv/docker/wariatkowo-data/images -maxdepth 2 -type d -print
     test -r /srv/docker/wariatkowo-data/images/profiles/misiek.jpg
    ```
@@ -372,6 +485,7 @@ Without the profile, `cloudflared` is not started. The Google client secret belo
 ## Security notes
 
 - Do not commit `.env`, databases, D1 exports or access tokens.
+- The Android deployment token is accepted only by the rate-limited internal upload route, compared in constant time, and never logged or sent to either frontend. Household authentication remains mandatory for metadata and APK downloads.
 - API SQL uses parameters; migrations are the only reviewed raw SQL scripts.
 - Static SPA serving is limited to `dist`. Personal media is exposed only through `/media/{polaroids|profiles}/<filename>` with category, extension, traversal and canonical-path checks; the rest of `/app/data` is not web-accessible.
 - Production errors do not include stack traces or filesystem paths.

@@ -22,6 +22,7 @@ import { PolaroidPhoto } from "../components/PolaroidPhoto";
 import { randomUniqueItems } from "../utils/randomSelection";
 import { HomeSummaryCard } from "../components/home/HomeSummaryCard";
 import { usePolaroidPhotos } from "../hooks/usePolaroidPhotos";
+import { MobileReleaseDownload } from "../components/MobileReleaseDownload";
 
 const pick = <T,>(items: readonly T[]): T =>
   items[Math.floor(Math.random() * items.length)];
@@ -472,6 +473,7 @@ export function DashboardPage() {
           <WariatkowoStatus status={status} />
         </AppCard>
       </div>
+      <MobileReleaseDownload />
     </div>
   );
 }
