@@ -3,37 +3,7 @@ import { Snowflake } from "lucide-react";
 import type { HomeClimate } from "../../../shared/models";
 import { homeService } from "../../services/homeService";
 import { DeviceState } from "./DeviceState";
-
-const OPTION_LABELS: Record<string, string> = {
-  off: "Wyłączony",
-  fan_only: "Nawiew",
-  heat: "Grzanie",
-  cool: "Chłodzenie",
-  dry: "Osuszanie",
-  auto: "Automatyczny",
-  low: "Niski",
-  middle_low: "Średnio niski",
-  medium: "Średni",
-  middle_high: "Średnio wysoki",
-  high: "Wysoki",
-  swing: "Wachlowanie",
-  top: "Góra",
-  mid_high: "Średnio wysoko",
-  mid_low: "Średnio nisko",
-  bottom: "Dół",
-  both_sides: "Obie strony",
-  left: "Lewo",
-  forward: "Na wprost",
-  right: "Prawo",
-  general: "Ogólny",
-  for_old: "Dla seniora",
-  for_young: "Dla dorosłych",
-  for_kid: "Dla dziecka",
-};
-
-function optionLabel(value: string): string {
-  return OPTION_LABELS[value] ?? value.replaceAll("_", " ");
-}
+import { homeOptionLabel } from "../../../shared/labels";
 
 export function ClimateCard({
   climate,
@@ -111,7 +81,7 @@ export function ClimateCard({
           <h3>{climate.name}</h3>
           <DeviceState
             available={climate.available}
-            label={optionLabel(climate.state)}
+            label={homeOptionLabel(climate.state)}
             state={climate.state}
           />
         </div>
@@ -150,7 +120,7 @@ export function ClimateCard({
             >
               {climate.modes.map((mode) => (
                 <option key={mode} value={mode}>
-                  {optionLabel(mode)}
+                  {homeOptionLabel(mode)}
                 </option>
               ))}
             </select>
@@ -170,7 +140,7 @@ export function ClimateCard({
             >
               {climate.fanModes.map((mode) => (
                 <option key={mode} value={mode}>
-                  {optionLabel(mode)}
+                  {homeOptionLabel(mode)}
                 </option>
               ))}
             </select>
@@ -190,7 +160,7 @@ export function ClimateCard({
             >
               {climate.swingModes.map((mode) => (
                 <option key={mode} value={mode}>
-                  {optionLabel(mode)}
+                  {homeOptionLabel(mode)}
                 </option>
               ))}
             </select>
@@ -212,7 +182,7 @@ export function ClimateCard({
             >
               {climate.horizontalSwingModes.map((mode) => (
                 <option key={mode} value={mode}>
-                  {optionLabel(mode)}
+                  {homeOptionLabel(mode)}
                 </option>
               ))}
             </select>
@@ -265,7 +235,7 @@ export function ClimateCard({
                   >
                     {control.options.map((option) => (
                       <option key={option} value={option}>
-                        {optionLabel(option)}
+                        {homeOptionLabel(option)}
                       </option>
                     ))}
                   </select>

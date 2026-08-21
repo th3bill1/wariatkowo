@@ -1,3 +1,14 @@
+export const SHOPPING_CATEGORIES = [
+  "Warzywa i owoce",
+  "Pieczywo",
+  "Nabiał",
+  "Białko",
+  "Napoje",
+  "Chemia",
+  "Dom",
+  "Inne",
+] as const;
+
 export function normalizeProductName(value: string): string {
   return value
     .normalize("NFKC")

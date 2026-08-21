@@ -54,8 +54,8 @@ export function AppShell() {
                   isActive ? "app-shell__nav-link--active" : "",
                 ].join(" ")
               }
-              key={item.path}
-              to={item.path}
+              key={item.webPath}
+              to={item.webPath}
             >
               <Icon className="app-shell__nav-icon" name={item.icon} />
               <span>{item.label}</span>
@@ -84,8 +84,8 @@ export function AppShell() {
                 isActive ? "app-shell__bottom-link--active" : "",
               ].join(" ")
             }
-            key={item.path}
-            to={item.path}
+            key={item.webPath}
+            to={item.webPath}
           >
             <Icon className="app-shell__nav-icon" name={item.icon} />
             <span>{item.label}</span>

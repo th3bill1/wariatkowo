@@ -6,21 +6,19 @@ import {
   HousePlug,
   type LucideIcon,
 } from "lucide-react";
-
-export type IconName =
-  "home" | "tasks" | "shopping" | "calendar" | "smart-home";
+import type { AppIconName } from "../../../shared/design";
 
 type IconProps = {
-  name: IconName;
+  name: AppIconName;
   className?: string;
 };
 
-const ICONS: Record<IconName, LucideIcon> = {
-  home: House,
-  tasks: ListChecks,
-  shopping: ShoppingBasket,
-  calendar: CalendarDays,
-  "smart-home": HousePlug,
+const ICONS: Record<AppIconName, LucideIcon> = {
+  House,
+  ListChecks,
+  ShoppingBasket,
+  CalendarDays,
+  HousePlug,
 };
 
 export function Icon({ name, className }: IconProps) {

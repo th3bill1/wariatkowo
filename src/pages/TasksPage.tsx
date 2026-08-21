@@ -2,6 +2,10 @@ import { FormEvent, useMemo, useState } from "react";
 import { Repeat2, UserRound, UsersRound } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import type { Task, TaskAssignment, TaskRecurrence } from "../../shared/models";
+import {
+  TASK_ASSIGNMENT_LABELS,
+  taskRecurrenceLabel,
+} from "../../shared/labels";
 import { useAuth } from "../auth/AuthContext";
 import { AppCard } from "../components/ui/AppCard";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -33,13 +37,6 @@ const EMPTY_FORM: TaskFormState = {
   recurrenceChoice: "none",
   customDays: "3",
 };
-const ASSIGNMENT_LABELS: Record<TaskAssignment, string> = {
-  anyone: "Dla kogokolwiek",
-  misiek: "Misiek",
-  miska: "Miśka",
-  both: "Dla nas",
-};
-
 function recurrenceFromForm(form: TaskFormState): TaskRecurrence | null {
   if (form.recurrenceChoice === "none") return null;
   if (form.recurrenceChoice === "custom")
@@ -61,14 +58,6 @@ function recurrenceChoice(
   )
     return { recurrenceChoice: key, customDays: "3" };
   return { recurrenceChoice: "custom", customDays: String(rule.interval) };
-}
-function recurrenceLabel(rule: TaskRecurrence | null): string | null {
-  if (!rule) return null;
-  if (rule.unit === "day" && rule.interval === 1) return "Codziennie";
-  if (rule.unit === "week" && rule.interval === 1) return "Co tydzień";
-  if (rule.unit === "week" && rule.interval === 2) return "Co 2 tygodnie";
-  if (rule.unit === "month" && rule.interval === 1) return "Co miesiąc";
-  return "Co " + rule.interval + " dni";
 }
 function TaskComposer({
   initialValue,
@@ -194,7 +183,9 @@ function TaskComposer({
               />
               {value === "both" ? <UsersRound /> : <UserRound />}
               <span>
-                {value === "anyone" ? "Ktokolwiek" : ASSIGNMENT_LABELS[value]}
+                {value === "anyone"
+                  ? "Ktokolwiek"
+                  : TASK_ASSIGNMENT_LABELS[value]}
               </span>
             </label>
           ),
@@ -249,7 +240,7 @@ function TaskRow({
     assignment: task.assignment,
     ...recurrenceChoice(task),
   };
-  const repeat = recurrenceLabel(task.recurrence);
+  const repeat = taskRecurrenceLabel(task.recurrence);
   return (
     <li className={"task-row " + (task.completed ? "task-row--completed" : "")}>
       <div className="task-row__main">
@@ -276,7 +267,7 @@ function TaskRow({
             ) : null}
           </div>
           <div className="task-row__meta">
-            <span>{ASSIGNMENT_LABELS[task.assignment]}</span>
+            <span>{TASK_ASSIGNMENT_LABELS[task.assignment]}</span>
             {repeat ? (
               <span>
                 <Repeat2 aria-hidden="true" />
