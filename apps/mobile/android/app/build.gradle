@@ -86,13 +86,13 @@ android {
     buildFeatures {
         compose true
     }
-
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.wariatkowo.mobile'
+
     externalNativeBuild {
         cmake {
             // Shorten the base path so CMake has room to hash long codegen paths.

@@ -74,16 +74,17 @@ module.exports = function withWariatkowoWidget(config) {
   config = withAndroidManifest(config, (current) => {
     const application = current.modResults.manifest.application[0];
     application.receiver = application.receiver || [];
-    if (
-      !application.receiver.some(
-        (receiver) =>
-          receiver.$?.["android:name"] === ".widget.WariatkowoWidgetReceiver",
-      )
-    ) {
+    const existingReceiver = application.receiver.find(
+      (receiver) =>
+        receiver.$?.["android:name"] === ".widget.WariatkowoWidgetReceiver",
+    );
+    if (existingReceiver) {
+      existingReceiver.$["android:exported"] = "true";
+    } else {
       application.receiver.push({
         $: {
           "android:name": ".widget.WariatkowoWidgetReceiver",
-          "android:exported": "false",
+          "android:exported": "true",
           "android:label": "Wariatkowo",
         },
         "intent-filter": [
@@ -149,7 +150,7 @@ module.exports = function withWariatkowoWidget(config) {
         path.join(xmlDirectory, "wariatkowo_widget_info.xml"),
         `<?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-  android:initialLayout="@layout/wariatkowo_widget_fallback"
+  android:initialLayout="@layout/glance_default_loading_layout"
   android:minWidth="250dp"
   android:minHeight="150dp"
   android:resizeMode="horizontal|vertical"

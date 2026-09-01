@@ -33,7 +33,9 @@
     "lucide-react": "^1.30.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-router-dom": "^7.18.2"
+    "react-router-dom": "^7.18.2",
+    "expo": "~57.0.15",
+    "react-native": "0.86.2"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^9.6.0",
