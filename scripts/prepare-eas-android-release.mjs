@@ -6,6 +6,7 @@ import { pipeline } from "node:stream/promises";
 
 const [buildJsonPath, expectedCommit, apkPath, releaseJsonPath] =
   process.argv.slice(2);
+const cloudflareUploadBudgetBytes = 90 * 1024 * 1024;
 if (!buildJsonPath || !expectedCommit || !apkPath || !releaseJsonPath) {
   throw new Error(
     "Usage: prepare-eas-android-release.mjs <build-json> <commit> <apk> <release-json>",
@@ -72,9 +73,13 @@ if (new URL(response.url).protocol !== "https:") {
   throw new Error("EAS APK download redirected away from HTTPS.");
 }
 const contentLength = Number(response.headers.get("content-length") ?? 0);
-const maximumSize = 200 * 1024 * 1024;
-if (Number.isFinite(contentLength) && contentLength > maximumSize) {
-  throw new Error("EAS APK exceeds the configured 200 MB limit.");
+if (
+  Number.isFinite(contentLength) &&
+  contentLength > cloudflareUploadBudgetBytes
+) {
+  throw new Error(
+    "EAS APK exceeds the 90 MiB Cloudflare-safe upload budget. Verify the preview profile still builds only ARM ABIs with compressed native libraries.",
+  );
 }
 
 let downloaded = 0;
@@ -82,8 +87,10 @@ const sizeGuard = new Transform({
   transform(chunk, _encoding, callback) {
     downloaded += chunk.length;
     callback(
-      downloaded > maximumSize
-        ? new Error("EAS APK exceeds the configured 200 MB limit.")
+      downloaded > cloudflareUploadBudgetBytes
+        ? new Error(
+            "EAS APK exceeds the 90 MiB Cloudflare-safe upload budget. Verify the preview profile still builds only ARM ABIs with compressed native libraries.",
+          )
         : null,
       chunk,
     );
@@ -144,6 +151,9 @@ try {
       2,
     )}\n`,
     { encoding: "utf8", flag: "wx" },
+  );
+  console.log(
+    `Prepared Android release (${(downloaded / 1024 / 1024).toFixed(1)} MiB; upload budget 90 MiB).`,
   );
 } catch (error) {
   await Promise.all([

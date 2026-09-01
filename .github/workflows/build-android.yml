@@ -112,7 +112,8 @@ jobs:
             --silent \
             --show-error \
             --retry 3 \
-            --retry-all-errors \
+            --connect-timeout 15 \
+            --max-time 1800 \
             --proto '=https' \
             --tlsv1.2 \
             -H "Authorization: Bearer ${WARIATKOWO_MOBILE_DEPLOY_TOKEN}" \

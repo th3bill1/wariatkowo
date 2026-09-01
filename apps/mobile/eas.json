@@ -19,7 +19,7 @@
         "EXPO_PUBLIC_API_URL": "https://wariatkowo.wwojcik.com"
       },
       "android": {
-        "buildType": "apk"
+        "gradleCommand": ":app:assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a -Pexpo.useLegacyPackaging=true"
       }
     },
     "production": {
@@ -29,7 +29,7 @@
         "EXPO_PUBLIC_API_URL": "https://wariatkowo.wwojcik.com"
       },
       "android": {
-        "buildType": "apk"
+        "gradleCommand": ":app:assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a -Pexpo.useLegacyPackaging=true"
       }
     }
   }
