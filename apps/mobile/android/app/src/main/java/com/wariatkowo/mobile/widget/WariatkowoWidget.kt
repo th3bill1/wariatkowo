@@ -1,7 +1,7 @@
 package com.wariatkowo.mobile.widget
 
 import android.content.Context
-import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpSize
@@ -14,7 +14,6 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.*
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
-import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.layout.*
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -23,6 +22,8 @@ import androidx.glance.unit.ColorProvider
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.wariatkowo.mobile.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -43,14 +44,20 @@ private val deviceDefinitions = listOf(
   WidgetDevice("szumownica", "Szumownica", "ac", "ac", "unknown", false),
 )
 
-class WariatkowoWidget : GlanceAppWidget() {
+class WariatkowoWidget : GlanceAppWidget(
+  errorUiLayout = R.layout.wariatkowo_widget_fallback,
+) {
   override val sizeMode = SizeMode.Responsive(
     setOf(DpSize(250.dp, 150.dp), DpSize(320.dp, 180.dp)),
   )
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
-    val configured = widgetPreferences(context).contains("token")
-    val devices = loadDevices(context)
+    val (configured, devices) = withContext(Dispatchers.IO) {
+      runCatching {
+        val preferences = widgetPreferences(context)
+        preferences.contains("token") to loadDevices(preferences)
+      }.getOrElse { false to deviceDefinitions }
+    }
     provideContent { WidgetContent(devices, configured) }
   }
 }
@@ -88,69 +95,48 @@ private fun DeviceRow(device: WidgetDevice, configured: Boolean) {
   val toggle = actionRunCallback<ToggleAction>(
     actionParametersOf(DeviceKey to device.route),
   )
-  val open = actionStartActivity(
-    Intent(Intent.ACTION_VIEW, Uri.parse("wariatkowo://devices/${device.route}")),
-  )
   Row(
-    modifier = GlanceModifier.fillMaxWidth().padding(vertical = 3.dp),
+    modifier = GlanceModifier
+      .fillMaxWidth()
+      .padding(vertical = 3.dp)
+      .background(ColorProvider(if (isOn) 0x267257e8 else 0x12ffffff))
+      .clickable(toggle)
+      .padding(horizontal = 9.dp, vertical = 7.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Row(
-      modifier = GlanceModifier
-        .defaultWeight()
-        .background(ColorProvider(if (isOn) 0x267257e8 else 0x12ffffff))
-        .clickable(toggle)
-        .padding(horizontal = 9.dp, vertical = 7.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Image(
-        provider = ImageProvider(
-          if (device.kind == "light") R.drawable.ic_widget_lightbulb
-          else R.drawable.ic_widget_snowflake,
+    Image(
+      provider = ImageProvider(
+        if (device.kind == "light") R.drawable.ic_widget_lightbulb
+        else R.drawable.ic_widget_snowflake,
+      ),
+      contentDescription = null,
+      modifier = GlanceModifier.size(19.dp),
+    )
+    Spacer(GlanceModifier.width(7.dp))
+    Text(
+      device.name,
+      modifier = GlanceModifier.defaultWeight(),
+      maxLines = 1,
+      style = TextStyle(
+        color = ColorProvider(0xff29252e.toInt()),
+        fontWeight = FontWeight.Bold,
+        fontSize = 13.sp,
+      ),
+    )
+    Text(
+      stateLabel,
+      style = TextStyle(
+        color = ColorProvider(
+          when {
+            !device.available -> 0xff827a89.toInt()
+            isOn -> 0xff4f9467.toInt()
+            else -> 0xff827a89.toInt()
+          },
         ),
-        contentDescription = null,
-        modifier = GlanceModifier.size(19.dp),
-      )
-      Spacer(GlanceModifier.width(7.dp))
-      Text(
-        device.name,
-        modifier = GlanceModifier.defaultWeight(),
-        maxLines = 1,
-        style = TextStyle(
-          color = ColorProvider(0xff29252e.toInt()),
-          fontWeight = FontWeight.Bold,
-          fontSize = 13.sp,
-        ),
-      )
-      Text(
-        stateLabel,
-        style = TextStyle(
-          color = ColorProvider(
-            when {
-              !device.available -> 0xff827a89.toInt()
-              isOn -> 0xff4f9467.toInt()
-              else -> 0xff827a89.toInt()
-            },
-          ),
-          fontWeight = FontWeight.Bold,
-          fontSize = 11.sp,
-        ),
-      )
-    }
-    Spacer(GlanceModifier.width(6.dp))
-    Box(
-      modifier = GlanceModifier
-        .size(36.dp)
-        .background(ColorProvider(0x1f7257e8))
-        .clickable(open),
-      contentAlignment = Alignment.Center,
-    ) {
-      Image(
-        provider = ImageProvider(R.drawable.ic_widget_settings),
-        contentDescription = "Otwórz ustawienia ${device.name}",
-        modifier = GlanceModifier.size(18.dp),
-      )
-    }
+        fontWeight = FontWeight.Bold,
+        fontSize = 11.sp,
+      ),
+    )
   }
 }
 
@@ -167,14 +153,16 @@ class ToggleAction : ActionCallback {
     parameters: ActionParameters,
   ) {
     val route = parameters[DeviceKey] ?: return
-    val preferences = widgetPreferences(context)
-    val baseUrl = preferences.getString("baseUrl", null) ?: return
-    val token = preferences.getString("token", null) ?: return
     try {
-      val data = request(baseUrl, "/api/home/status", token, "GET")
-        .getJSONObject("data")
-      val endpoint = toggleEndpoint(data, route) ?: return
-      request(baseUrl, endpoint, token, "POST")
+      withContext(Dispatchers.IO) {
+        val preferences = widgetPreferences(context)
+        val baseUrl = preferences.getString("baseUrl", null) ?: return@withContext
+        val token = preferences.getString("token", null) ?: return@withContext
+        val data = request(baseUrl, "/api/home/status", token, "GET")
+          .getJSONObject("data")
+        val endpoint = toggleEndpoint(data, route) ?: return@withContext
+        request(baseUrl, endpoint, token, "POST")
+      }
     } catch (_: Exception) {
       // The refreshed widget communicates an unavailable state without crashing the host.
     } finally {
@@ -200,8 +188,7 @@ private fun toggleEndpoint(data: JSONObject, route: String): String? {
   return null
 }
 
-private fun loadDevices(context: Context): List<WidgetDevice> {
-  val preferences = widgetPreferences(context)
+private fun loadDevices(preferences: SharedPreferences): List<WidgetDevice> {
   val baseUrl = preferences.getString("baseUrl", null) ?: return deviceDefinitions
   val token = preferences.getString("token", null) ?: return deviceDefinitions
   return try {

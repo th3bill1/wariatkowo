@@ -6,22 +6,15 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/wariatkowo-logo.png",
     "android": {
       "package": "com.wariatkowo.mobile",
       "permissions": ["android.permission.REQUEST_INSTALL_PACKAGES"],
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": false,
-          "data": [
-            {
-              "scheme": "wariatkowo",
-              "host": "devices"
-            }
-          ],
-          "category": ["BROWSABLE", "DEFAULT"]
-        }
-      ]
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/wariatkowo-logo.png",
+        "backgroundColor": "#FFF8F2",
+        "monochromeImage": "./assets/wariatkowo-logo.png"
+      }
     },
     "plugins": [
       "expo-router",

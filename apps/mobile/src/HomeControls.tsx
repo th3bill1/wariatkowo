@@ -1,5 +1,5 @@
 import Slider from "@react-native-community/slider";
-import { Lightbulb, Settings, Snowflake } from "lucide-react-native";
+import { Lightbulb, Snowflake } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { homeOptionLabel } from "../../../shared/labels";
@@ -7,14 +7,19 @@ import type { HomeClimate, HomeLight } from "../../../shared/models";
 import { useAuth } from "./AuthProvider";
 import { SelectField } from "./formControls";
 import { colors, fonts } from "./theme";
-import { Button, Field, IconButton, s } from "./ui";
+import { Button, s } from "./ui";
 
-const LIGHT_PRESETS = [
-  { label: "Noc", color: "#ff9a3d", brightness: 15 },
-  { label: "Relaks", color: "#ffb85c", brightness: 35 },
-  { label: "Wieczór", color: "#ffd37d", brightness: 55 },
-  { label: "Czytanie", color: "#ffe4a8", brightness: 75 },
-  { label: "Jasno", color: "#fff0cf", brightness: 100 },
+const LIGHT_COLORS = [
+  { label: "Ciepła biel", color: "#ffd37d" },
+  { label: "Biel", color: "#fff0cf" },
+  { label: "Czerwony", color: "#ff3b30" },
+  { label: "Pomarańczowy", color: "#ff9500" },
+  { label: "Żółty", color: "#ffcc00" },
+  { label: "Zielony", color: "#34c759" },
+  { label: "Turkusowy", color: "#30b0c7" },
+  { label: "Niebieski", color: "#007aff" },
+  { label: "Fioletowy", color: "#af52de" },
+  { label: "Różowy", color: "#ff2d55" },
 ] as const;
 
 function rgbHex(rgb: [number, number, number] | null): string {
@@ -111,12 +116,10 @@ export function LightControl({
   light,
   busy,
   run,
-  onOpenDetails,
 }: {
   light: HomeLight;
   busy: boolean;
   run(action: () => Promise<unknown>): Promise<void>;
-  onOpenDetails?: () => void;
 }) {
   const isOn = light.state === "on";
   const [brightness, setBrightness] = useState(light.brightness ?? 100);
@@ -129,7 +132,6 @@ export function LightControl({
       ),
   );
   const [color, setColor] = useState(rgbHex(light.rgb));
-  const [colorError, setColorError] = useState<string | null>(null);
   useEffect(() => {
     setBrightness(light.brightness ?? 100);
     if (light.colorTemperatureKelvin !== null)
@@ -137,15 +139,6 @@ export function LightControl({
     setColor(rgbHex(light.rgb));
   }, [light]);
   const disabled = busy || !light.available;
-  const setHexColor = () => {
-    const rgb = hexRgb(color);
-    if (!rgb) {
-      setColorError("Podaj kolor w formacie #RRGGBB.");
-      return;
-    }
-    setColorError(null);
-    void run(() => lightApi.lightSettings(light.id, { rgb }));
-  };
   const lightApi = useHomeApi();
   return (
     <View style={styles.deviceCard}>
@@ -172,13 +165,6 @@ export function LightControl({
           <Text style={styles.deviceName}>{light.name}</Text>
           <DeviceState available={light.available} state={light.state} />
         </View>
-        {onOpenDetails ? (
-          <IconButton
-            Icon={Settings}
-            label={`Ustawienia ${light.name}`}
-            onPress={onOpenDetails}
-          />
-        ) : null}
       </View>
       {light.supportsBrightness ? (
         <Range
@@ -201,55 +187,36 @@ export function LightControl({
       ) : null}
       {light.supportsColor ? (
         <View style={styles.controlGroup}>
-          <Field
-            label="Kolor (#RRGGBB)"
-            autoCapitalize="none"
-            editable={!disabled}
-            maxLength={7}
-            onChangeText={setColor}
-            value={color}
-          />
-          {colorError ? <Text style={s.error}>{colorError}</Text> : null}
-          <Button
-            compact
-            disabled={disabled}
-            onPress={setHexColor}
-            title="Ustaw kolor"
-            variant="ghost"
-          />
+          <Text style={s.label}>Kolor</Text>
           <View
-            accessibilityLabel="Gotowe ustawienia koloru i jasności"
-            style={styles.presets}
+            accessibilityLabel="Paleta kolorów światła"
+            style={styles.colorPalette}
           >
-            {LIGHT_PRESETS.map((preset) => {
-              const selected =
-                color.toLowerCase() === preset.color &&
-                brightness === preset.brightness;
+            {LIGHT_COLORS.map((option) => {
+              const selected = color.toLowerCase() === option.color;
               return (
                 <Pressable
-                  accessibilityLabel={`${preset.label}, jasność ${preset.brightness}%`}
+                  accessibilityLabel={option.label}
                   accessibilityRole="button"
+                  accessibilityState={{ selected, disabled }}
                   disabled={disabled}
-                  key={preset.label}
+                  key={option.color}
                   onPress={() => {
-                    setColor(preset.color);
-                    setBrightness(preset.brightness);
+                    setColor(option.color);
                     void run(() =>
                       lightApi.lightSettings(light.id, {
-                        brightness: preset.brightness,
-                        rgb: hexRgb(preset.color)!,
+                        rgb: hexRgb(option.color)!,
                       }),
                     );
                   }}
                   style={({ pressed }) => [
-                    styles.preset,
-                    { backgroundColor: preset.color },
-                    selected && styles.presetSelected,
+                    styles.colorSwatch,
+                    { backgroundColor: option.color },
+                    selected && styles.colorSwatchSelected,
                     pressed && s.pressed,
                   ]}
                 >
-                  <Text style={styles.presetLabel}>{preset.label}</Text>
-                  <Text style={styles.presetValue}>{preset.brightness}%</Text>
+                  {selected ? <View style={styles.colorSwatchMark} /> : null}
                 </Pressable>
               );
             })}
@@ -538,23 +505,22 @@ const styles = StyleSheet.create({
   range: { gap: 2 },
   rangeValue: { color: colors.text, fontFamily: fonts.extraBold, fontSize: 14 },
   controlGroup: { gap: 8 },
-  presets: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
-  preset: {
-    width: "18%",
-    minWidth: 57,
-    minHeight: 55,
-    borderRadius: 14,
-    padding: 7,
-    justifyContent: "flex-end",
-    borderWidth: 1,
-    borderColor: "#E6D7C7",
+  colorPalette: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  colorSwatch: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 2,
+    borderColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  presetSelected: { borderWidth: 3, borderColor: colors.purple },
-  presetLabel: { color: colors.text, fontFamily: fonts.bold, fontSize: 10 },
-  presetValue: {
-    color: colors.text,
-    fontFamily: fonts.extraBold,
-    fontSize: 11,
+  colorSwatchSelected: { borderWidth: 4, borderColor: colors.purple },
+  colorSwatchMark: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.surface,
   },
   currentTemperature: { alignItems: "flex-end" },
   temperatureValue: {

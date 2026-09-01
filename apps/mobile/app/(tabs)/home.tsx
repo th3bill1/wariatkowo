@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import { PlusSquare, Sparkles } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -11,7 +10,6 @@ import {
 } from "react-native";
 import { WIDGET_DEVICES } from "../../../../shared/design";
 import type { HomeStatus } from "../../../../shared/models";
-import { normalizeDeviceName } from "@wariatkowo/api-client/src/deviceRoutes";
 import { useAuth } from "../../src/AuthProvider";
 import { cached } from "../../src/cache";
 import { ClimateControl, LightControl } from "../../src/HomeControls";
@@ -188,11 +186,6 @@ export default function HomeScreen() {
           onPress={() => void addWidget()}
           title={addingWidget ? "Otwieranie…" : "Dodaj widget"}
         />
-        <Text style={s.meta}>
-          Jeśli launcher nie obsługuje przypinania, aplikacja pokaże krótką
-          instrukcję ręcznego dodania. Żadne fikcyjne uprawnienie nie jest
-          potrzebne.
-        </Text>
       </Card>
 
       {status?.scenes.length ? (
@@ -222,9 +215,6 @@ export default function HomeScreen() {
               busy={pending || !status.connected}
               key={light.id}
               light={light}
-              onOpenDetails={() =>
-                router.push(`/devices/${normalizeDeviceName(light.name)}`)
-              }
               run={run}
             />
           ))}

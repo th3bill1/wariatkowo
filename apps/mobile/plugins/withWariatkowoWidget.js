@@ -11,24 +11,56 @@ const WIDGET_SOURCE_FILES = [
   "WariatkowoWidget.kt",
   "WariatkowoWidgetModule.kt",
 ];
-const WIDGET_DRAWABLES = [
-  "ic_widget_lightbulb.xml",
-  "ic_widget_snowflake.xml",
-  "ic_widget_settings.xml",
-];
+const WIDGET_DRAWABLES = ["ic_widget_lightbulb.xml", "ic_widget_snowflake.xml"];
+const WIDGET_LAYOUTS = ["wariatkowo_widget_fallback.xml"];
 
 module.exports = function withWariatkowoWidget(config) {
   config = withProjectBuildGradle(config, (current) => {
-    if (!current.modResults.contents.includes("kotlin_version = '2.0.21'")) {
+    current.modResults.contents = current.modResults.contents.replace(
+      /ext\.kotlin_version\s*=\s*['"][^'"]+['"]\s*\n?/,
+      "",
+    );
+    if (/ext\.kotlinVersion\s*=/.test(current.modResults.contents)) {
+      current.modResults.contents = current.modResults.contents.replace(
+        /ext\.kotlinVersion\s*=\s*['"][^'"]+['"]/,
+        "ext.kotlinVersion = '2.1.20'",
+      );
+    } else {
       current.modResults.contents = current.modResults.contents.replace(
         "buildscript {",
-        "buildscript {\n    ext.kotlin_version = '2.0.21'",
+        "buildscript {\n    ext.kotlinVersion = '2.1.20'",
+      );
+    }
+    if (
+      !current.modResults.contents.includes(
+        "org.jetbrains.kotlin.plugin.compose.gradle.plugin",
+      )
+    ) {
+      current.modResults.contents = current.modResults.contents.replace(
+        /dependencies\s*\{/,
+        'dependencies {\n    classpath("org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:${kotlinVersion}")',
       );
     }
     return current;
   });
 
   config = withAppBuildGradle(config, (current) => {
+    if (
+      !current.modResults.contents.includes(
+        'apply plugin: "org.jetbrains.kotlin.plugin.compose"',
+      )
+    ) {
+      current.modResults.contents = current.modResults.contents.replace(
+        'apply plugin: "org.jetbrains.kotlin.android"',
+        'apply plugin: "org.jetbrains.kotlin.android"\napply plugin: "org.jetbrains.kotlin.plugin.compose"',
+      );
+    }
+    if (!current.modResults.contents.includes("compose true")) {
+      current.modResults.contents = current.modResults.contents.replace(
+        /android\s*\{/,
+        "android {\n    buildFeatures {\n        compose true\n    }",
+      );
+    }
     const marker = "// Wariatkowo widget";
     if (!current.modResults.contents.includes(marker)) {
       current.modResults.contents = current.modResults.contents.replace(
@@ -51,7 +83,7 @@ module.exports = function withWariatkowoWidget(config) {
       application.receiver.push({
         $: {
           "android:name": ".widget.WariatkowoWidgetReceiver",
-          "android:exported": "true",
+          "android:exported": "false",
           "android:label": "Wariatkowo",
         },
         "intent-filter": [
@@ -89,9 +121,11 @@ module.exports = function withWariatkowoWidget(config) {
       );
       const xmlDirectory = path.join(root, "app/src/main/res/xml");
       const drawableDirectory = path.join(root, "app/src/main/res/drawable");
+      const layoutDirectory = path.join(root, "app/src/main/res/layout");
       fs.mkdirSync(packageDirectory, { recursive: true });
       fs.mkdirSync(xmlDirectory, { recursive: true });
       fs.mkdirSync(drawableDirectory, { recursive: true });
+      fs.mkdirSync(layoutDirectory, { recursive: true });
 
       for (const file of WIDGET_SOURCE_FILES) {
         fs.copyFileSync(
@@ -105,11 +139,17 @@ module.exports = function withWariatkowoWidget(config) {
           path.join(drawableDirectory, file),
         );
       }
+      for (const file of WIDGET_LAYOUTS) {
+        fs.copyFileSync(
+          path.join(source, file),
+          path.join(layoutDirectory, file),
+        );
+      }
       fs.writeFileSync(
         path.join(xmlDirectory, "wariatkowo_widget_info.xml"),
         `<?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-  android:initialLayout="@layout/glance_default_loading_layout"
+  android:initialLayout="@layout/wariatkowo_widget_fallback"
   android:minWidth="250dp"
   android:minHeight="150dp"
   android:resizeMode="horizontal|vertical"

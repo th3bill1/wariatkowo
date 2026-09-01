@@ -29,15 +29,8 @@
         <data android:scheme="wariatkowo"/>
         <data android:scheme="exp+wariatkowo"/>
       </intent-filter>
-      <intent-filter data-generated="true">
-        <action android:name="android.intent.action.VIEW"/>
-        <data android:scheme="wariatkowo" android:host="devices"/>
-        <data android:scheme="exp+wariatkowo"/>
-        <category android:name="android.intent.category.BROWSABLE"/>
-        <category android:name="android.intent.category.DEFAULT"/>
-      </intent-filter>
     </activity>
-    <receiver android:name=".widget.WariatkowoWidgetReceiver" android:exported="true" android:label="Wariatkowo">
+    <receiver android:name=".widget.WariatkowoWidgetReceiver" android:exported="false" android:label="Wariatkowo">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
       </intent-filter>
