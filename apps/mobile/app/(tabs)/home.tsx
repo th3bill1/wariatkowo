@@ -90,7 +90,7 @@ export default function HomeScreen() {
       if (result.requested) {
         Alert.alert(
           "Dodaj widget",
-          "Potwierdź dodanie widgetu w oknie launchera. Android nie wymaga do tego osobnego uprawnienia.",
+          "Potwierdź dodanie widgetu w oknie launchera.",
         );
       } else {
         Alert.alert(
@@ -163,31 +163,6 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      <Card>
-        <SectionHeader
-          description="Boskie światło, Miśkolampa i Szumownica zawsze pod ręką."
-          title="Widget ekranu głównego"
-        />
-        <View style={styles.widgetDevices}>
-          {WIDGET_DEVICES.map((device) => (
-            <View key={device.route} style={styles.widgetDevice}>
-              <DeviceIcon
-                color={device.kind === "light" ? "#9B6A19" : "#3777A6"}
-                name={device.icon}
-                size={20}
-              />
-              <Text style={s.body}>{device.label}</Text>
-            </View>
-          ))}
-        </View>
-        <Button
-          disabled={addingWidget}
-          Icon={PlusSquare}
-          onPress={() => void addWidget()}
-          title={addingWidget ? "Otwieranie…" : "Dodaj widget"}
-        />
-      </Card>
-
       {status?.scenes.length ? (
         <Card>
           <SectionHeader
@@ -233,6 +208,32 @@ export default function HomeScreen() {
           />
         </View>
       ) : null}
+
+      <Card>
+        <SectionHeader
+          description="Boskie światło, Miśkolampa i Szumownica zawsze pod ręką."
+          title="Widget ekranu głównego"
+        />
+        <View style={styles.widgetDevices}>
+          {WIDGET_DEVICES.map((device) => (
+            <View key={device.route} style={styles.widgetDevice}>
+              <DeviceIcon
+                color={device.kind === "light" ? "#9B6A19" : "#3777A6"}
+                name={device.icon}
+                size={20}
+              />
+              <Text style={s.body}>{device.label}</Text>
+            </View>
+          ))}
+        </View>
+        <Button
+          disabled={addingWidget}
+          Icon={PlusSquare}
+          onPress={() => void addWidget()}
+          title={addingWidget ? "Otwieranie…" : "Dodaj widget"}
+        />
+      </Card>
+      
       {status && !configured ? (
         <Card>
           <SectionHeader
